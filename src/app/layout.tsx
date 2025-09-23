@@ -13,6 +13,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "A1Tips - Premium Sports Betting Tips",
   description: "Get the best sports betting tips and predictions with A1Tips. Join our VIP community for exclusive insights and winning strategies.",
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
