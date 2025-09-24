@@ -29,19 +29,20 @@ export default function Login() {
       { username: 'test', email: 'test@example.com', password: 'password123', isAdmin: false }
     ];
 
-    // Check if credentials match
-    const user = validCredentials.find(cred => 
+    // First, check if credentials match mock data
+    const mockUser = validCredentials.find(cred => 
       (cred.username === formData.usernameOrEmail || cred.email === formData.usernameOrEmail) &&
       cred.password === formData.password
     );
 
-    if (user) {
-      if (user.isAdmin) {
+    if (mockUser) {
+      // Handle mock user login as before
+      if (mockUser.isAdmin) {
         // Admin login - redirect to admin dashboard
         localStorage.setItem('adminLoggedIn', 'true');
         localStorage.setItem('adminUser', JSON.stringify({
-          username: user.username,
-          email: user.email,
+          username: mockUser.username,
+          email: mockUser.email,
           loginTime: new Date().toISOString()
         }));
         
@@ -52,8 +53,8 @@ export default function Login() {
         // Regular user login
         const userData = {
           id: '1',
-          username: user.username,
-          email: user.email,
+          username: mockUser.username,
+          email: mockUser.email,
           phone: '+233 XX XXX XXXX'
         };
         
@@ -65,7 +66,65 @@ export default function Login() {
         }, 100);
       }
     } else {
-      setError('Invalid username/email or password');
+      // Not found in mock data, try backend API
+      try {
+        const response = await fetch('http://127.0.0.1:8000/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email_or_username: formData.usernameOrEmail,
+            password: formData.password,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Store the backend response data in localStorage
+          localStorage.setItem('access_token', data.access_token);
+          localStorage.setItem('username', data.username);
+          localStorage.setItem('email', data.email);
+          localStorage.setItem('is_admin', data.is_admin.toString());
+          localStorage.setItem('token_type', data.token_type);
+
+          if (data.is_admin === 1) {
+            // Admin user - redirect to admin dashboard
+            localStorage.setItem('adminLoggedIn', 'true');
+            localStorage.setItem('adminUser', JSON.stringify({
+              username: data.username,
+              email: data.email,
+              loginTime: new Date().toISOString()
+            }));
+            
+            setTimeout(() => {
+              window.location.href = '/admin';
+            }, 100);
+          } else {
+            // Regular user login
+            const userData = {
+              id: '1',
+              username: data.username,
+              email: data.email,
+              phone: '+233 XX XXX XXXX'
+            };
+            
+            login(userData);
+            
+            // Force a page refresh to ensure all components update
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 100);
+          }
+        } else {
+          // Backend rejected the credentials
+          setError('Invalid username/email or password');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        setError('Network error. Please try again.');
+      }
     }
 
     setIsLoading(false);
