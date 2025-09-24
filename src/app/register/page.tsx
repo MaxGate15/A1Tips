@@ -8,8 +8,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    username: '',
     email: '',
     phone: '',
     password: '',
@@ -37,12 +36,10 @@ export default function Register() {
     }
 
     // Check required fields
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
+    if (!formData.username.trim()) {
+      newErrors.username = 'Username is required';
     }
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    }
+    
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     }
@@ -54,14 +51,47 @@ export default function Register() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (validateForm()) {
-      // Handle registration logic here
-      console.log('Registration data:', formData);
-      // You can add actual registration logic here
-      alert('Account created successfully!');
+      try {
+        const requestBody = {
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+          phone_number: formData.phone,
+          is_superuser: false,
+          is_staff: false
+        };
+
+        const response = await fetch('http://127.0.0.1:8000/auth/sign-up', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (response.ok) {
+          alert('Account created successfully!');
+          // Optionally reset form or redirect user
+          setFormData({
+            username: '',
+            email: '',
+            phone: '',
+            password: '',
+            confirmPassword: '',
+            agreeToTerms: false,
+          });
+        } else {
+          const errorData = await response.json();
+          alert(`Registration failed. ${errorData.detail || 'Please try again.'}`);
+        }
+      } catch (error) {
+        console.error('Error during registration:', error);
+        alert('Network error. Please check your connection and try again.');
+      }
     }
   };
 
@@ -107,35 +137,35 @@ export default function Register() {
           {/* Registration Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name Fields */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* <div className="grid grid-cols-2 gap-4"> */}
               <div>
                 <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700 mb-2">
-                  First Name
+                  Username
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <FaUser className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
-                    id="firstName"
-                    name="firstName"
+                    id="username"
+                    name="username"
                     type="text"
                     required
                     className={`block w-full pl-12 pr-4 py-3 border-2 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 transition-all duration-200 ${
-                      errors.firstName 
+                      errors.username
                         ? 'border-red-500 focus:ring-red-100 focus:border-red-500' 
                         : 'border-gray-200 focus:ring-green-100 focus:border-green-500'
                     }`}
-                    placeholder="First name"
-                    value={formData.firstName}
+                    placeholder="Username"
+                    value={formData.username}
                     onChange={handleChange}
                   />
                 </div>
-                {errors.firstName && (
-                  <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
+                {errors.username && (
+                  <p className="mt-1 text-sm text-red-600">{errors.username}</p>
                 )}
               </div>
-              <div>
+              {/* <div>
                 <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700 mb-2">
                   Last Name
                 </label>
@@ -161,8 +191,8 @@ export default function Register() {
                 {errors.lastName && (
                   <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
                 )}
-              </div>
-            </div>
+              </div> */}
+            {/* </div> */}
 
             {/* Email Field */}
             <div>
