@@ -8,21 +8,54 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [vipPlans, setVipPlans] = useState([
-    { id: 1, name: 'VIP 1', status: 'Sold Out', canToggle: true },
-    { id: 2, name: 'VIP 2', status: 'Available', canToggle: true },
-    { id: 3, name: 'VIP 3', status: 'Available', canToggle: true },
-    ]);
+  const [stats, setStats] = useState([]);
+  const [vipPlans, setVipPlans] = useState([]);
 
-  // Initialize VIP plan statuses in localStorage
+  // Fetch VIP plans from API
   useEffect(() => {
-    const vipPlanStatuses = {
-      'VIP 1': true,  // Available
-      'VIP 2': true,  // Available
-      'VIP 3': true,  // Available
+    const fetchVipPlans = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/games/vip-list');
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch VIP plans: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Fetched VIP plans data:', data);
+        
+        // Transform API response to match expected state shape
+        const transformedPlans = data.map(plan => ({
+          id: plan.id,
+          name: plan.name,
+          status: plan.available ? 'Available' : 'Sold Out',
+          canToggle: true
+        }));
+        
+        setVipPlans(transformedPlans);
+        
+        // Store VIP plan statuses in localStorage for user pages to access
+        const vipPlanStatuses = transformedPlans.reduce((acc, plan) => {
+          acc[plan.name] = plan.status === 'Available';
+          return acc;
+        }, {});
+        
+        localStorage.setItem('vipPlanStatuses', JSON.stringify(vipPlanStatuses));
+        
+      } catch (error) {
+        console.error('Error fetching VIP plans:', error);
+        alert('Failed to load VIP plans. Please refresh the page to try again.');
+        
+        // Fallback to empty array with default localStorage
+        setVipPlans([]);
+        localStorage.setItem('vipPlanStatuses', JSON.stringify({}));
+      }
     };
-    localStorage.setItem('vipPlanStatuses', JSON.stringify(vipPlanStatuses));
-  }, []);
+
+    if (isAuthenticated) {
+      fetchVipPlans();
+    }
+  }, [isAuthenticated]);
 
   const [smsRecipients, setSmsRecipients] = useState('all');
   const [smsMessage, setSmsMessage] = useState('');
@@ -81,6 +114,10 @@ export default function Admin() {
     { id: 2, username: 'moderator1', email: 'mod1@a1tips.com', role: 'limited', status: 'active', createdDate: '2024-01-15' }
   ]);
   
+  // Users management states
+  const [users, setUsers] = useState([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  
   const router = useRouter();
 
   // Check admin authentication
@@ -98,61 +135,205 @@ export default function Admin() {
     checkAuth();
   }, [router]);
 
+  // Fetch dashboard stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      const statsConfig = [
+        {
+          title: 'Total Users',
+          endpoint: 'http://127.0.0.1:8000/auth/total-users',
+          icon: FaUsers,
+          color: 'text-blue-600',
+          bgColor: 'bg-blue-100'
+        },
+        {
+          title: 'Active Games',
+          endpoint: 'http://127.0.0.1:8000/games/number-of-vip-bookings-today',
+          icon: FaGamepad,
+          color: 'text-green-600',
+          bgColor: 'bg-green-100'
+        },
+        {
+          title: 'VIP Subscriptions',
+          endpoint: 'http://127.0.0.1:8000/payment/number-of-purchases',
+          icon: FaCrown,
+          color: 'text-orange-600',
+          bgColor: 'bg-orange-100'
+        }
+      ];
+
+      const fetchedStats = await Promise.all(
+        statsConfig.map(async (stat) => {
+          try {
+            const response = await fetch(stat.endpoint);
+            if (response.ok) {
+              const value = await response.json();
+              return {
+                ...stat,
+                value: value.toString()
+              };
+            } else {
+              console.error(`Failed to fetch ${stat.title}:`, response.statusText);
+              return {
+                ...stat,
+                value: '0'
+              };
+            }
+          } catch (error) {
+            console.error(`Error fetching ${stat.title}:`, error);
+            return {
+              ...stat,
+              value: '0'
+            };
+          }
+        })
+      );
+
+      setStats(fetchedStats);
+    };
+
+    if (isAuthenticated) {
+      fetchStats();
+    }
+  }, [isAuthenticated]);
+
+  // Fetch users data
+  useEffect(() => {
+    const fetchUsers = async () => {
+      if (!isAuthenticated) return;
+      
+      setIsLoadingUsers(true);
+      try {
+        const response = await fetch('http://127.0.0.1:8000/auth/all-users');
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch users: ${response.statusText}`);
+        }
+        
+        const userData = await response.json();
+        console.log('Fetched users data:', userData);
+        
+        setUsers(userData);
+        
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        alert('Failed to fetch users. Please try again.');
+        
+        // Keep users as empty array on error
+        setUsers([]);
+      } finally {
+        setIsLoadingUsers(false);
+      }
+    };
+
+    fetchUsers();
+  }, [isAuthenticated]);
+
   const handleLogout = () => {
     localStorage.removeItem('adminLoggedIn');
     localStorage.removeItem('adminUser');
     router.push('/login');
   };
 
-  const toggleVipPlanStatus = (planId: number) => {
-    setVipPlans(prev => {
-      const updatedPlans = prev.map(plan => 
-        plan.id === planId 
-          ? { ...plan, status: plan.status === 'Available' ? 'Sold Out' : 'Available' }
-          : plan
-      );
-      
-      // Save VIP plan statuses to localStorage for user pages to access
-      const vipPlanStatuses = updatedPlans.reduce((acc, plan) => {
-        acc[plan.name] = plan.status === 'Available';
-        return acc;
-      }, {} as Record<string, boolean>);
-      
-      localStorage.setItem('vipPlanStatuses', JSON.stringify(vipPlanStatuses));
-      
-      return updatedPlans;
-    });
+  const toggleVipPlanStatus = async (planId: number) => {
+    try {
+      // Find the current plan to determine the new status
+      const currentPlan = vipPlans.find(plan => plan.id === planId);
+      if (!currentPlan) {
+        console.error('Plan not found:', planId);
+        alert('Plan not found. Please refresh the page.');
+        return;
+      }
+
+      const newStatus = currentPlan.status === 'Available' ? 'Sold Out' : 'Available';
+      const endpoint = newStatus === 'Sold Out' 
+        ? `http://127.0.0.1:8000/games/mark-sold-out/${planId}`
+        : `http://127.0.0.1:8000/games/update-availability/${planId}`;
+
+      console.log(`Updating VIP plan ${planId} to ${newStatus}...`);
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update status: ${response.statusText}`);
+      }
+
+      const responseData = await response.json();
+      console.log('Status update successful:', responseData);
+
+      // Update local state only after successful API response
+      setVipPlans(prev => {
+        const updatedPlans = prev.map(plan => 
+          plan.id === planId 
+            ? { ...plan, status: newStatus }
+            : plan
+        );
+        
+        // Save VIP plan statuses to localStorage for user pages to access
+        const vipPlanStatuses = updatedPlans.reduce((acc, plan) => {
+          acc[plan.name] = plan.status === 'Available';
+          return acc;
+        }, {} as Record<string, boolean>);
+        
+        localStorage.setItem('vipPlanStatuses', JSON.stringify(vipPlanStatuses));
+        
+        return updatedPlans;
+      });
+
+    } catch (error) {
+      console.error('Error updating VIP plan status:', error);
+      alert('Failed to update status. Please try again.');
+    }
   };
 
-  const loadGames = () => {
+  const loadGames = async () => {
     const currentBookingCode = bookingCodes[selectedCategory];
     if (!currentBookingCode.trim()) return;
     
-    // Mock games data - we'll implement real SportyBet integration later
-    const mockGames = [
-      { id: 1, match: 'Bodoe/Glimt vs Kristiansund BK', type: '1X2', odds: 1.11 },
-      { id: 2, match: 'Paderborn vs Bochum', type: '1X2', odds: 1.97 },
-      { id: 3, match: 'Arminia Bielefeld vs 1. FC Magdeburg', type: '1X2', odds: 2.15 },
-      { id: 4, match: 'Bayer Leverkusen vs Eintracht Frankfurt', type: '1X2', odds: 2.36 },
-    ];
-    
-    // Load games only to the selected category
-    setLoadedGames(prev => ({
-      ...prev,
-      [selectedCategory]: mockGames
-    }));
-    
-    // Track the booking code as one entry
-    setLoadedBookings(prev => ({
-      ...prev,
-      [selectedCategory]: [...prev[selectedCategory], { code: currentBookingCode, games: mockGames }]
-    }));
-    
-    // Clear the booking code for this category only
-    setBookingCodes(prev => ({
-      ...prev,
-      [selectedCategory]: ''
-    }));
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/games/load-booking/${currentBookingCode}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load booking: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // Transform the API response games to match the expected format
+      const formattedGames = data.games.map((game, index) => ({
+        id: index + 1,
+        match: `${game.home} vs ${game.away}`,
+        type: game.prediction,
+        odds: game.odd
+      }));
+      
+      // Load games only to the selected category
+      setLoadedGames(prev => ({
+        ...prev,
+        [selectedCategory]: formattedGames
+      }));
+      
+      // Track the booking code as one entry
+      setLoadedBookings(prev => ({
+        ...prev,
+        [selectedCategory]: [...prev[selectedCategory], { code: currentBookingCode, games: formattedGames }]
+      }));
+      
+      // Clear the booking code for this category only
+      setBookingCodes(prev => ({
+        ...prev,
+        [selectedCategory]: ''
+      }));
+      
+    } catch (error) {
+      console.error('Error loading games:', error);
+      alert(`Failed to load games for booking code ${currentBookingCode}. Please check the code and try again.`);
+    }
   };
 
   const getInitials = (name: string) => {
@@ -258,47 +439,78 @@ export default function Admin() {
     setGamePrice('');
   };
 
-  const handleUpload = () => {
-    // Directly upload games to users and move to Slips
-    const categoryPrice = categoryPrices[selectedCategory] || '';
-    const gamesToMove = loadedGames[selectedCategory].map((game, index) => ({
-      ...game,
-      id: `slip_${Date.now()}_${index}`, // Unique ID for each slip
-      originalCategory: selectedCategory,
-      uploadDate: new Date().toISOString(),
-      status: 'Active',
-      result: null, // Will be set after match
-      editable: true, // Can be edited after match
-      categoryPrice: categoryPrice // Include the category-specific price
-    }));
-    
-    // Add to Slips
-    setLoadedGames(prev => ({
-      ...prev,
-      Slips: [...prev.Slips, ...gamesToMove]
-    }));
-    
-    // Clear current category
-    setLoadedGames(prev => ({
-      ...prev,
-      [selectedCategory]: []
-    }));
-    
-    setLoadedBookings(prev => ({
-      ...prev,
-      [selectedCategory]: []
-    }));
-    
-    console.log('Games uploaded directly to users and moved to Slips:', {
-      games: gamesToMove,
-      category: selectedCategory,
-      price: categoryPrice
-    });
+  const handleUpload = async () => {
+    try {
+      const categoryPrice = categoryPrices[selectedCategory] || '';
+      const currentBooking = loadedBookings[selectedCategory]?.[loadedBookings[selectedCategory].length - 1];
+      
+      if (!currentBooking) {
+        alert('No booking data found for this category. Please load games first.');
+        return;
+      }
+
+      // Transform games to match API format
+      const transformedGames = loadedGames[selectedCategory].map(game => {
+        // Extract home and away teams from the match string
+        const [home, away] = game.match.split(' vs ');
+        
+        return {
+          home: home,
+          away: away,
+          prediction: game.type,
+          odd: game.odds,
+          sport: "Football", // Default to Football
+          tournament: "Unknown", // Default tournament
+          match_status: "pending"
+        };
+      });
+
+      const requestBody = {
+        deadline: currentBooking.deadline || new Date().toISOString(),
+        shareCode: currentBooking.shareCode || '',
+        shareURL: currentBooking.shareURL || '',
+        category: selectedCategory,
+        price: categoryPrice,
+        games: transformedGames
+      };
+
+      const response = await fetch('http://127.0.0.1:8000/games/upload-booking', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to upload booking: ${response.statusText}`);
+      }
+
+      const responseData = await response.json();
+      console.log('Backend response:', responseData);
+
+      // Clear current category games and bookings on success
+      setLoadedGames(prev => ({
+        ...prev,
+        [selectedCategory]: []
+      }));
+      
+      setLoadedBookings(prev => ({
+        ...prev,
+        [selectedCategory]: []
+      }));
+
+      alert(`Games successfully uploaded to ${selectedCategory} category!`);
+      
+    } catch (error) {
+      console.error('Error uploading games:', error);
+      alert(`Failed to upload games: ${error.message}. Please try again.`);
+    }
   };
 
   const handleEditGame = (game) => {
     setEditingGame(game);
-    setGameResult(game.result || '');
+    setGameResult(game.result || '');       
     setShowEditModal(true);
   };
 
@@ -364,23 +576,49 @@ export default function Admin() {
     console.log('Archived slips:', selectedSlips);
   };
 
-  const handleSendSMS = () => {
+  const handleSendSMS = async () => {
     if (!smsMessage.trim()) {
       alert('Please enter a message before sending SMS');
       return;
     }
 
-    // Simulate SMS sending
-    console.log('Sending SMS:', {
-      recipients: smsRecipients,
-      message: smsMessage
-    });
+    try {
+      // Encode the message for URL query parameter
+      const encodedMessage = encodeURIComponent(smsMessage.trim());
+      const endpoint = `http://127.0.0.1:8000/sms/send_bulk?message=${encodedMessage}`;
 
-    // Show success message
-    alert(`SMS sent successfully to ${smsRecipients === 'all' ? 'all users' : 'custom numbers'}!`);
-    
-    // Clear the message
-    setSmsMessage('');
+      console.log('Sending SMS to API:', { message: smsMessage, recipients: smsRecipients });
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      console.log('SMS API response:', responseData);
+
+      // Check if the API response indicates success
+      if (responseData.status === 'success') {
+        alert(`${responseData.message} to ${smsRecipients === 'all' ? 'all users' : 'custom numbers'}!`);
+        // Clear the message after successful sending
+        setSmsMessage('');
+      } else {
+        // Handle API error response
+        const errorMessage = responseData.message || 'Failed to send SMS';
+        alert(`Error: ${errorMessage}`);
+        console.error('SMS API error:', responseData);
+      }
+
+    } catch (error) {
+      console.error('Error sending SMS:', error);
+      alert('Failed to send SMS. Please check your connection and try again.');
+    }
   };
 
   const handleAddAdmin = () => {
@@ -477,29 +715,11 @@ export default function Admin() {
     return null;
   }
 
-  const stats = [
-    { title: 'Total Users', value: '1,234', icon: FaUsers, color: 'text-blue-600', bgColor: 'bg-blue-100' },
-    { title: 'Active Games', value: '45', icon: FaGamepad, color: 'text-green-600', bgColor: 'bg-green-100' },
-    { title: 'VIP Subscriptions', value: '89', icon: FaCrown, color: 'text-orange-600', bgColor: 'bg-orange-100' },
-  ];
-
   const recentActivity = [
     { action: 'New user registered: john_doe', time: '2 minutes ago' },
     { action: 'VIP package sold: Daily Plan', time: '5 minutes ago' },
     { action: 'Game result updated: Team A vs Team B', time: '10 minutes ago' },
   ];
-
-  const users = [
-    {
-      id: 1,
-      name: 'John Doe',
-      username: 'john_doe',
-      email: 'john@example.com',
-      phone: '+1234567890',
-      status: 'Active'
-    }
-  ];
-
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1250,54 +1470,75 @@ export default function Admin() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {users.map((user) => (
-                        <tr key={user.id}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="flex-shrink-0 h-10 w-10">
-                                <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
-                                  <span className="text-sm font-medium text-white">
-                                    {getInitials(user.name)}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900">
-                                  {user.name}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  @{user.username}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {user.email}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {user.phone}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                              {user.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex items-center space-x-2">
-                              <button className="text-blue-600 hover:text-blue-900 p-1">
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                </svg>
-                              </button>
-                              <button className="text-red-600 hover:text-red-900 p-1">
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                </svg>
-                              </button>
+                      {isLoadingUsers ? (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                            <div className="flex items-center justify-center">
+                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mr-3"></div>
+                              Loading users...
                             </div>
                           </td>
                         </tr>
-                      ))}
+                      ) : users.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                            No users found
+                          </td>
+                        </tr>
+                      ) : (
+                        users.map((user) => (
+                          <tr key={user.id}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0 h-10 w-10">
+                                  <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
+                                    <span className="text-sm font-medium text-white">
+                                      {getInitials(user.username)}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="ml-4">
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {user.username}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    @{user.username}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {user.email}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {user.phone}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                user.status === 'active' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {user.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <div className="flex items-center space-x-2">
+                                <button className="text-blue-600 hover:text-blue-900 p-1" title="Edit user">
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                  </svg>
+                                </button>
+                                <button className="text-red-600 hover:text-red-900 p-1" title="Delete user">
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -1339,7 +1580,7 @@ export default function Admin() {
                         All Users (1,234 recipients)
                       </span>
                     </label>
-                    <label className="flex items-center">
+                    {/* <label className="flex items-center">
                       <input
                         type="radio"
                         name="recipients"
@@ -1351,7 +1592,7 @@ export default function Admin() {
                       <span className="ml-3 text-sm text-gray-700">
                         Custom Numbers
                       </span>
-                    </label>
+                    </label> */}
                   </div>
                 </div>
 
