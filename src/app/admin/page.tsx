@@ -436,11 +436,17 @@ export default function Admin() {
       }));
       
       console.log('Booking codes saved:', { sportyCode, msportCode, category: selectedCategory });
-      setShowBookingModal(false);
-      setSelectedGame(null);
-      setSportyCode('');
-      setMsportCode('');
+    } else {
+      // Show validation message if fields are empty
+      alert('Please fill in both SportyBet and MSport codes before attaching.');
+      return;
     }
+    
+    // Always close the modal after processing (success or validation)
+    setShowBookingModal(false);
+    setSelectedGame(null);
+    setSportyCode('');
+    setMsportCode('');
   };
 
   const handleCancelBooking = () => {
