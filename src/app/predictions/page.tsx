@@ -147,6 +147,37 @@ export default function Predictions() {
     }
   }, [isAuthenticated, isLoading, router]);
 
+  // Listen for authentication changes (when user logs out)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      // If user data is removed or admin flag is cleared, redirect to login
+      if (e.key === 'user' && !e.newValue) {
+        router.push('/login');
+      }
+      if (e.key === 'is_admin' && !e.newValue) {
+        router.push('/login');
+      }
+    };
+
+    // Listen for storage changes (when user logs out from another tab or same tab)
+    window.addEventListener('storage', handleStorageChange);
+
+    // Check authentication state periodically
+    const interval = setInterval(() => {
+      const userData = localStorage.getItem('user');
+      const isAdminLoggedIn = localStorage.getItem('is_admin') === '1';
+      
+      if (!userData && !isAdminLoggedIn && !isLoading) {
+        router.push('/login');
+      }
+    }, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [isAuthenticated, isLoading, router]);
+
   // Fetch VIP availability from API
   useEffect(() => {
     const fetchVipAvailability = async () => {
