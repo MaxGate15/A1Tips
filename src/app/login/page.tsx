@@ -23,49 +23,7 @@ export default function Login() {
     setError('');
 
     // Test credentials for demo purposes
-    const validCredentials = [
-      { username: 'admin', email: 'admin@a1tips.com', password: 'admin123', isAdmin: true },
-      { username: 'user', email: 'user@a1tips.com', password: 'user123', isAdmin: false },
-      { username: 'test', email: 'test@example.com', password: 'password123', isAdmin: false }
-    ];
 
-    // First, check if credentials match mock data
-    const mockUser = validCredentials.find(cred => 
-      (cred.username === formData.usernameOrEmail || cred.email === formData.usernameOrEmail) &&
-      cred.password === formData.password
-    );
-
-    if (mockUser) {
-      // Handle mock user login as before
-      if (mockUser.isAdmin) {
-        // Admin login - redirect to admin dashboard
-        localStorage.setItem('adminLoggedIn', 'true');
-        localStorage.setItem('adminUser', JSON.stringify({
-          username: mockUser.username,
-          email: mockUser.email,
-          loginTime: new Date().toISOString()
-        }));
-        
-        setTimeout(() => {
-          window.location.href = '/admin';
-        }, 100);
-      } else {
-        // Regular user login
-        const userData = {
-          id: '1',
-          username: mockUser.username,
-          email: mockUser.email,
-          phone: '+233 XX XXX XXXX'
-        };
-        
-        login(userData);
-        
-        // Force a page refresh to ensure all components update
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 100);
-      }
-    } else {
       // Not found in mock data, try backend API
       try {
         const response = await fetch('http://127.0.0.1:8000/auth/login', {
@@ -99,7 +57,7 @@ export default function Login() {
             }));
             
             setTimeout(() => {
-              window.location.href = '/admin';
+              window.location.href = '/';
             }, 100);
           } else {
             // Regular user login
@@ -125,7 +83,7 @@ export default function Login() {
         console.error('Login error:', error);
         setError('Network error. Please try again.');
       }
-    }
+    
 
     setIsLoading(false);
   };

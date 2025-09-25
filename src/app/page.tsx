@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { FaTrophy, FaChartLine, FaCrown, FaUsers, FaStar, FaTelegram, FaCopy } from 'react-icons/fa';
-import { useState, useEffect, useRef } from 'react';
+import { FaTelegram, FaCopy } from 'react-icons/fa';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Home() {
@@ -13,6 +13,9 @@ export default function Home() {
   const [winRate, setWinRate] = useState(0);
   const [userCount, setUserCount] = useState(0);
   const [userRating, setUserRating] = useState(0);
+  const [matches, setMatches] = useState<{teams: string, tip: string, result: string}[]>([]);
+  const [bookingCodes, setBookingCodes] = useState<{platform: string, code: string}[]>([]);
+  const [isLoadingMatches, setIsLoadingMatches] = useState(true);
   const { isAuthenticated } = useAuth();
   const bookingDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -29,6 +32,101 @@ export default function Home() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Fetch matches data from API
+  const fetchMatchesForDate = useCallback(async (date: string) => {
+    setIsLoadingMatches(true);
+    try {
+      let endpoint = '';
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Determine which API to call based on date
+      if (date === 'today') {
+        endpoint = 'http://127.0.0.1:8000/games/free-bookings';
+      } else {
+        // Convert date string to actual date for API
+        let apiDate = today; // default to today
+        
+        if (date === 'yesterday') {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          apiDate = yesterday.toISOString().split('T')[0];
+        } else if (date === 'tomorrow') {
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          apiDate = tomorrow.toISOString().split('T')[0];
+        } else if (dateFilter) {
+          // Use custom date from date picker
+          apiDate = dateFilter;
+        }
+        
+        endpoint = `http://127.0.0.1:8000/games/other-games?date=${apiDate}`;
+      }
+
+      console.log('Fetching matches from:', endpoint);
+      const response = await fetch(endpoint);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch matches: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Fetched matches data:', data);
+      
+      // Transform API response to match UI format
+      const transformedMatches: {teams: string, tip: string, result: string}[] = [];
+      const codes: {platform: string, code: string}[] = [];
+      
+      data.forEach((booking: {booking_code: string, games: {home_team: string, away_team: string, prediction: string, match_status: string}[]}) => {
+        // Extract booking codes
+        if (booking.booking_code) {
+          codes.push(
+            { platform: 'Sporty', code: booking.booking_code },
+            { platform: 'MSport', code: booking.booking_code }
+          );
+        }
+        
+        // Transform games to match UI format
+        booking.games.forEach((game) => {
+          transformedMatches.push({
+            teams: `${game.home_team} vs ${game.away_team}`,
+            tip: game.prediction,
+            result: game.match_status // 'pending', 'won', 'lost'
+          });
+        });
+      });
+      
+      setMatches(transformedMatches);
+      setBookingCodes(codes.length > 0 ? codes : [
+        { platform: 'Sporty', code: 'No codes available' },
+        { platform: 'MSport', code: 'No codes available' }
+      ]);
+      
+    } catch (error) {
+      console.error('Error fetching matches:', error);
+      
+      // Fallback to empty data on error
+      setMatches([]);
+      setBookingCodes([
+        { platform: 'Sporty', code: 'Error loading' },
+        { platform: 'MSport', code: 'Error loading' }
+      ]);
+    } finally {
+      setIsLoadingMatches(false);
+    }
+  }, [dateFilter]);
+
+  // Fetch matches when component mounts or date changes
+  useEffect(() => {
+    fetchMatchesForDate(selectedDate);
+  }, [selectedDate, fetchMatchesForDate]);
+
+  // Fetch matches when custom date filter changes
+  useEffect(() => {
+    if (dateFilter) {
+      fetchMatchesForDate('custom');
+    }
+  }, [dateFilter, fetchMatchesForDate]);
 
   // Animate counters on page load
   useEffect(() => {
@@ -83,37 +181,6 @@ export default function Home() {
     } catch (err) {
       console.error('Failed to copy: ', err);
     }
-  };
-
-  // Booking codes for different platforms
-  const bookingCodes = [
-    { platform: 'Sporty', code: 'hdhd' },
-    { platform: 'MSport', code: 'mspt' },
-  ];
-
-  // Sample matches data for different dates
-  const getMatchesForDate = (date: string) => {
-    const matches = {
-      yesterday: [
-        { teams: 'Manchester United vs Arsenal', tip: 'Over 2.5 Goals', result: 'won' },
-        { teams: 'Chelsea vs Liverpool', tip: 'Home Win', result: 'lost' },
-        { teams: 'Tottenham vs Manchester City', tip: 'BTTS - Yes', result: 'won' },
-      ],
-      today: [
-        { teams: 'Arsenal vs Chelsea', tip: 'Home Win', result: 'won' },
-        { teams: 'Manchester United vs Liverpool', tip: 'Over 2.5 Goals', result: 'pending' },
-        { teams: 'Barcelona vs Real Madrid', tip: 'BTTS - Yes', result: 'lost' },
-        { teams: 'Manchester City vs Napoli', tip: 'Over 1.5 Goals', result: 'won' },
-        { teams: 'Eintracht Frankfurt vs Galatasaray', tip: 'Away Win', result: 'pending' },
-        { teams: 'Newcastle United vs FC Barcelona', tip: 'Over 1.5 Goals', result: 'won' },
-      ],
-      tomorrow: [
-        { teams: 'Juventus vs AC Milan', tip: 'Home Win', result: 'pending' },
-        { teams: 'PSG vs Bayern Munich', tip: 'Over 3.5 Goals', result: 'pending' },
-        { teams: 'Inter Milan vs Napoli', tip: 'Away Win', result: 'pending' },
-      ]
-    };
-    return matches[date as keyof typeof matches] || matches.today;
   };
 
   return (
@@ -234,83 +301,48 @@ export default function Home() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {getMatchesForDate(selectedDate).map((match, index) => (
-                    <tr key={index} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-sm sm:text-base font-semibold text-gray-900">
-                        <div className="break-words">{match.teams}</div>
-                      </td>
-                      <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-sm sm:text-base text-gray-700">
-                        <div className="break-words">{match.tip}</div>
-                      </td>
-                      <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-center">
-                        {match.result === 'won' ? (
-                          <div className="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full">
-                            <span className="text-white font-bold text-sm sm:text-lg">✓</span>
-                          </div>
-                        ) : match.result === 'lost' ? (
-                          <div className="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 bg-red-500 rounded-full">
-                            <span className="text-white font-bold text-sm sm:text-lg">✗</span>
-                          </div>
-                        ) : (
-                          <div className="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 bg-yellow-500 rounded-full">
-                            <span className="text-white font-bold text-xs sm:text-sm">?</span>
-                          </div>
-                        )}
+                  {isLoadingMatches ? (
+                    <tr>
+                      <td colSpan={3} className="px-4 sm:px-6 lg:px-8 py-8 text-center">
+                        <div className="flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                          <span className="ml-2 text-gray-600">Loading matches...</span>
+                        </div>
                       </td>
                     </tr>
-                  ))}
-                  <tr className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-sm sm:text-base font-semibold text-gray-900">
-                      <div className="break-words">Barcelona vs Real Madrid</div>
-                    </td>
-                    <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-sm sm:text-base text-gray-700">
-                      <div className="break-words">BTTS - Yes</div>
-                    </td>
-                    <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-center">
-                      <div className="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 bg-red-500 rounded-full">
-                        <span className="text-white font-bold text-sm sm:text-lg">✗</span>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-sm sm:text-base font-semibold text-gray-900">
-                      <div className="break-words">Manchester City vs Napoli</div>
-                    </td>
-                    <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-sm sm:text-base text-gray-700">
-                      <div className="break-words">Over 1.5 Goals</div>
-                    </td>
-                    <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-center">
-                      <div className="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full">
-                        <span className="text-white font-bold text-sm sm:text-lg">✓</span>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-sm sm:text-base font-semibold text-gray-900">
-                      <div className="break-words">Eintracht Frankfurt vs Galatasaray</div>
-                    </td>
-                    <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-sm sm:text-base text-gray-700">
-                      <div className="break-words">Away Win</div>
-                    </td>
-                    <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-center">
-                      <div className="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 bg-yellow-500 rounded-full">
-                        <span className="text-white font-bold text-xs sm:text-sm">?</span>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-sm sm:text-base font-semibold text-gray-900">
-                      <div className="break-words">Newcastle United vs FC Barcelona</div>
-                    </td>
-                    <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-sm sm:text-base text-gray-700">
-                      <div className="break-words">Over 1.5 Goals</div>
-                    </td>
-                    <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-center">
-                      <div className="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full">
-                        <span className="text-white font-bold text-sm sm:text-lg">✓</span>
-                      </div>
-                    </td>
-                  </tr>
+                  ) : matches.length > 0 ? (
+                    matches.map((match, index) => (
+                      <tr key={index} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-sm sm:text-base font-semibold text-gray-900">
+                          <div className="break-words">{match.teams}</div>
+                        </td>
+                        <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-sm sm:text-base text-gray-700">
+                          <div className="break-words">{match.tip}</div>
+                        </td>
+                        <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-center">
+                          {match.result === 'won' ? (
+                            <div className="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full">
+                              <span className="text-white font-bold text-sm sm:text-lg">✓</span>
+                            </div>
+                          ) : match.result === 'lost' ? (
+                            <div className="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 bg-red-500 rounded-full">
+                              <span className="text-white font-bold text-sm sm:text-lg">✗</span>
+                            </div>
+                          ) : (
+                            <div className="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 bg-yellow-500 rounded-full">
+                              <span className="text-white font-bold text-xs sm:text-sm">?</span>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="px-4 sm:px-6 lg:px-8 py-8 text-center">
+                        <div className="text-gray-600">No matches available for this date.</div>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

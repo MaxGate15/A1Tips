@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaUsers, FaChartLine, FaTrophy, FaDollarSign, FaCog, FaBell, FaCrown, FaSignOutAlt, FaTimes, FaGamepad, FaTachometerAlt } from 'react-icons/fa';
+import { FaUsers, FaChartLine,FaHome, FaTrophy, FaDollarSign, FaCog, FaBell, FaCrown, FaSignOutAlt, FaTimes, FaGamepad, FaTachometerAlt } from 'react-icons/fa';
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -227,6 +227,54 @@ export default function Admin() {
     };
 
     fetchUsers();
+  }, [isAuthenticated]);
+
+  // Fetch existing slips from backend
+  useEffect(() => {
+    const fetchExistingSlips = async () => {
+      if (!isAuthenticated) return;
+      
+      try {
+        const response = await fetch('http://127.0.0.1:8000/games/all-bookings');
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch existing slips: ${response.statusText}`);
+        }
+        
+        const bookingsData = await response.json();
+        console.log('Fetched existing slips data:', bookingsData);
+        
+        // Transform API response to match current UI format
+        const transformedSlips = bookingsData.map((booking) => {
+          return booking.games.map((game) => ({
+            id: game.id,
+            match: `${game.home_team} vs ${game.away_team}`,
+            type: game.prediction,
+            odds: game.odds,
+            originalCategory: booking.booking.category,
+            categoryPrice: booking.booking.price,
+            uploadDate: booking.booking.deadline,
+            sportyCode: booking.booking.share_code,
+            msportCode: booking.booking.share_code, // Use same code as fallback
+            result: game.match_status === 'pending' ? undefined : game.match_status,
+            status: game.match_status === 'pending' ? 'Pending' : 'Completed'
+          }));
+        }).flat(); // Flatten array of arrays into single array
+        
+        // Update Slips with fetched data
+        setLoadedGames(prev => ({
+          ...prev,
+          Slips: transformedSlips
+        }));
+        
+      } catch (error) {
+        console.error('Error fetching existing slips:', error);
+        // Don't show alert for this as it's background loading
+        console.log('Failed to fetch existing slips, continuing with empty state');
+      }
+    };
+
+    fetchExistingSlips();
   }, [isAuthenticated]);
 
   const handleLogout = () => {
@@ -467,12 +515,13 @@ export default function Admin() {
 
       const requestBody = {
         deadline: currentBooking.deadline || new Date().toISOString(),
-        shareCode: currentBooking.shareCode || '',
+        shareCode: loadedGames[selectedCategory]?.[0]?.sportyCode || sportyCode || '',
         shareURL: currentBooking.shareURL || '',
         category: selectedCategory,
         price: categoryPrice,
         games: transformedGames
       };
+      console.log('Uploading booking with data:', requestBody);
 
       const response = await fetch('http://127.0.0.1:8000/games/upload-booking', {
         method: 'POST',
@@ -739,6 +788,13 @@ export default function Admin() {
               >
                 <FaSignOutAlt className="w-4 h-4 mr-2" />
                 Logout
+              </button>
+              <button 
+                onClick={() => router.push('/')}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md transition-colors flex items-center"
+              >
+                <FaHome className="w-4 h-4 mr-2" />
+                Home
               </button>
             </div>
           </div>

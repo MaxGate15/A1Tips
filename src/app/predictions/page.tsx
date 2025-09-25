@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect,useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaCalendarAlt, FaCrown, FaFire, FaTrophy, FaClock } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
@@ -11,12 +11,117 @@ export default function Predictions() {
   const [selectedSport, setSelectedSport] = useState('all');
   const [dateFilter, setDateFilter] = useState('');
   const [vipAvailability, setVipAvailability] = useState({
-    'VIP 1': true,
-    'VIP 2': true,
-    'VIP 3': true
+    'VIP 1': false,
+    'VIP 2': false,
+    'VIP 3': false
   });
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const [matches, setMatches] = useState<{teams: string, tip: string, result: string}[]>([]);
+  const [bookingCodes, setBookingCodes] = useState<{platform: string, code: string}[]>([]);
+  const [isLoadingMatches, setIsLoadingMatches] = useState(true);
+  const [vipPackages, setVipPackages] = useState<{
+    category: string;
+    id: number;
+    price: string;
+    booking_code: string;
+    games: {home_team: string, away_team: string, prediction: string, odds: number, match_status: string}[];
+  }[]>([]);
+  const [isLoadingVipPackages, setIsLoadingVipPackages] = useState(true);
+
+   const fetchMatchesForDate = useCallback(async (date: string) => {
+      setIsLoadingMatches(true);
+      try {
+        let endpoint = '';
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Determine which API to call based on date
+        if (date === 'today') {
+          endpoint = 'http://127.0.0.1:8000/games/free-bookings';
+        } else {
+          // Convert date string to actual date for API
+          let apiDate = today; // default to today
+          
+          if (date === 'yesterday') {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            apiDate = yesterday.toISOString().split('T')[0];
+          } else if (date === 'tomorrow') {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            apiDate = tomorrow.toISOString().split('T')[0];
+          } else if (dateFilter) {
+            // Use custom date from date picker
+            apiDate = dateFilter;
+          }
+          
+          endpoint = `http://127.0.0.1:8000/games/other-games?date=${apiDate}`;
+        }
+  
+        console.log('Fetching matches from:', endpoint);
+        const response = await fetch(endpoint);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch matches: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Fetched matches data:', data);
+        
+        // Transform API response to match UI format
+        const transformedMatches: {teams: string, tip: string, result: string}[] = [];
+        const codes: {platform: string, code: string}[] = [];
+        
+        data.forEach((booking: {booking_code: string, games: {home_team: string, away_team: string, prediction: string, match_status: string}[]}) => {
+          // Extract booking codes
+          if (booking.booking_code) {
+            codes.push(
+              { platform: 'Sporty', code: booking.booking_code },
+              { platform: 'MSport', code: booking.booking_code }
+            );
+          }
+          
+          // Transform games to match UI format
+          booking.games.forEach((game) => {
+            transformedMatches.push({
+              teams: `${game.home_team} vs ${game.away_team}`,
+              tip: game.prediction,
+              result: game.match_status // 'pending', 'won', 'lost'
+            });
+          });
+        });
+        
+        setMatches(transformedMatches);
+        setBookingCodes(codes.length > 0 ? codes : [
+          { platform: 'Sporty', code: 'No codes available' },
+          { platform: 'MSport', code: 'No codes available' }
+        ]);
+        
+      } catch (error) {
+        console.error('Error fetching matches:', error);
+        
+        // Fallback to empty data on error
+        setMatches([]);
+        setBookingCodes([
+          { platform: 'Sporty', code: 'Error loading' },
+          { platform: 'MSport', code: 'Error loading' }
+        ]);
+      } finally {
+        setIsLoadingMatches(false);
+      }
+    }, [dateFilter]);
+  
+    // Fetch matches when component mounts or date changes
+    useEffect(() => {
+      fetchMatchesForDate(selectedDate);
+    }, [selectedDate, fetchMatchesForDate]);
+  
+    // Fetch matches when custom date filter changes
+    useEffect(() => {
+      if (dateFilter) {
+        fetchMatchesForDate('custom');
+      }
+    }, [dateFilter, fetchMatchesForDate]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -25,27 +130,101 @@ export default function Predictions() {
     }
   }, [isAuthenticated, isLoading, router]);
 
-  // Check VIP availability from localStorage
+  // Fetch VIP availability from API
   useEffect(() => {
-    const checkVipAvailability = () => {
+    const fetchVipAvailability = async () => {
+      try {
+        console.log('Fetching VIP availability from API...');
+        const response = await fetch('http://127.0.0.1:8000/games/vip-list');
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch VIP availability: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Fetched VIP availability data:', data);
+        
+        // Transform API response to match expected state shape
+        const transformedAvailability: {[key: string]: boolean} = {
+          'VIP 1': false,
+          'VIP 2': false,
+          'VIP 3': false
+        };
+        
+        data.forEach((vip: {id: number, name: string, amount: number, available: boolean}) => {
+          // Transform name format: VIP1 -> "VIP 1", VIP2 -> "VIP 2", etc.
+          const formattedName = vip.name.replace(/VIP(\d+)/, 'VIP $1');
+          transformedAvailability[formattedName] = vip.available;
+        });
+        
+        console.log('Transformed VIP availability:', transformedAvailability);
+        setVipAvailability(transformedAvailability);
+        
+      } catch (error) {
+        console.error('Error fetching VIP availability:', error);
+        // Keep default state (all false) on error
+        console.log('Using default VIP availability state due to error');
+      }
+    };
+
+    fetchVipAvailability();
+    
+    // Also check localStorage for any admin updates (fallback/secondary source)
+    const checkLocalStorage = () => {
       const storedStatuses = localStorage.getItem('vipPlanStatuses');
       if (storedStatuses) {
         try {
           const parsedStatuses = JSON.parse(storedStatuses);
-          setVipAvailability(parsedStatuses);
+          console.log('Found localStorage VIP statuses:', parsedStatuses);
+          // Only use localStorage if API data is not available
+          setVipAvailability(prevState => {
+            // Merge with API data, prioritizing API data over localStorage
+            return { ...parsedStatuses, ...prevState };
+          });
         } catch (error) {
-          console.error('Error parsing VIP statuses:', error);
+          console.error('Error parsing VIP statuses from localStorage:', error);
         }
       }
     };
 
-    checkVipAvailability();
-    
     // Listen for storage changes (when admin updates VIP status)
-    const handleStorageChange = () => checkVipAvailability();
+    const handleStorageChange = () => {
+      console.log('Storage changed, checking for VIP status updates...');
+      checkLocalStorage();
+    };
+    
     window.addEventListener('storage', handleStorageChange);
     
     return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Fetch VIP packages for today
+  useEffect(() => {
+    const fetchVipPackages = async () => {
+      setIsLoadingVipPackages(true);
+      try {
+        console.log('Fetching VIP packages from API...');
+        const response = await fetch('http://127.0.0.1:8000/games/vip-for-today');
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch VIP packages: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Fetched VIP packages data:', data);
+        
+        setVipPackages(data);
+        
+      } catch (error) {
+        console.error('Error fetching VIP packages:', error);
+        // Keep empty array on error
+        setVipPackages([]);
+      } finally {
+        setIsLoadingVipPackages(false);
+      }
+    };
+
+    fetchVipPackages();
   }, []);
 
   // Show loading while checking authentication
@@ -72,9 +251,22 @@ export default function Predictions() {
     // For now, we'll just show an alert
     alert(`Payment successful! Reference: ${reference}`);
   };
+  
+
+  
 
   const handlePaymentClose = () => {
     console.log('Payment cancelled');
+  };
+
+  // Helper function to get VIP package data by category
+  const getVipPackageByCategory = (category: string) => {
+    return vipPackages.find(pkg => pkg.category === category);
+  };
+
+  // Helper function to format category name for display
+  const formatCategoryName = (category: string) => {
+    return category.replace(/VIP(\d+)/, 'VIP $1');
   };
 
   const dates = [
@@ -226,129 +418,69 @@ export default function Predictions() {
         </div>
 
         {/* Predictions Table */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 mb-8">
-          <table className="w-full">
-            <thead className="bg-gradient-to-r from-green-500 to-green-600">
-              <tr>
-                <th className="px-8 py-4 text-left text-sm font-bold text-white uppercase tracking-wider">
-                  TEAMS
-                </th>
-                <th className="px-8 py-4 text-left text-sm font-bold text-white uppercase tracking-wider">
-                  TIPS
-                </th>
-                <th className="px-8 py-4 text-left text-sm font-bold text-white uppercase tracking-wider">
-                  RESULTS
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              <tr className="hover:bg-gray-50 transition-colors">
-                <td className="px-8 py-5 whitespace-nowrap text-base font-semibold text-gray-900">
-                  Arsenal vs Chelsea
-                </td>
-                <td className="px-8 py-5 whitespace-nowrap text-base text-gray-700">
-                  Home Win
-                </td>
-                <td className="px-8 py-5 whitespace-nowrap text-center">
-                  <div className="inline-flex items-center justify-center w-8 h-8 bg-green-500 rounded-full">
-                    <span className="text-white font-bold text-lg">✓</span>
-                  </div>
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50 transition-colors">
-                <td className="px-8 py-5 whitespace-nowrap text-base font-semibold text-gray-900">
-                  Manchester United vs Liverpool
-                </td>
-                <td className="px-8 py-5 whitespace-nowrap text-base text-gray-700">
-                  Over 2.5 Goals
-                </td>
-                <td className="px-8 py-5 whitespace-nowrap text-center">
-                  <div className="inline-flex items-center justify-center w-8 h-8 bg-yellow-500 rounded-full">
-                    <span className="text-white font-bold text-sm">?</span>
-                  </div>
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50 transition-colors">
-                <td className="px-8 py-5 whitespace-nowrap text-base font-semibold text-gray-900">
-                  Barcelona vs Real Madrid
-                </td>
-                <td className="px-8 py-5 whitespace-nowrap text-base text-gray-700">
-                  BTTS - Yes
-                </td>
-                <td className="px-8 py-5 whitespace-nowrap text-center">
-                  <div className="inline-flex items-center justify-center w-8 h-8 bg-red-500 rounded-full">
-                    <span className="text-white font-bold text-lg">✗</span>
-                  </div>
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50 transition-colors">
-                <td className="px-8 py-5 whitespace-nowrap text-base font-semibold text-gray-900">
-                  Manchester City vs Napoli
-                </td>
-                <td className="px-8 py-5 whitespace-nowrap text-base text-gray-700">
-                  Over 1.5 Goals
-                </td>
-                <td className="px-8 py-5 whitespace-nowrap text-center">
-                  <div className="inline-flex items-center justify-center w-8 h-8 bg-green-500 rounded-full">
-                    <span className="text-white font-bold text-lg">✓</span>
-                  </div>
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50 transition-colors">
-                <td className="px-8 py-5 whitespace-nowrap text-base font-semibold text-gray-900">
-                  Eintracht Frankfurt vs Galatasaray
-                </td>
-                <td className="px-8 py-5 whitespace-nowrap text-base text-gray-700">
-                  Away Win
-                </td>
-                <td className="px-8 py-5 whitespace-nowrap text-center">
-                  <div className="inline-flex items-center justify-center w-8 h-8 bg-yellow-500 rounded-full">
-                    <span className="text-white font-bold text-sm">?</span>
-                  </div>
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50 transition-colors">
-                <td className="px-8 py-5 whitespace-nowrap text-base font-semibold text-gray-900">
-                  Newcastle United vs FC Barcelona
-                </td>
-                <td className="px-8 py-5 whitespace-nowrap text-base text-gray-700">
-                  Over 1.5 Goals
-                </td>
-                <td className="px-8 py-5 whitespace-nowrap text-center">
-                  <div className="inline-flex items-center justify-center w-8 h-8 bg-green-500 rounded-full">
-                    <span className="text-white font-bold text-lg">✓</span>
-                  </div>
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50 transition-colors">
-                <td className="px-8 py-5 whitespace-nowrap text-base font-semibold text-gray-900">
-                  Lakers vs Warriors
-                </td>
-                <td className="px-8 py-5 whitespace-nowrap text-base text-gray-700">
-                  Lakers -5.5
-                </td>
-                <td className="px-8 py-5 whitespace-nowrap text-center">
-                  <div className="inline-flex items-center justify-center w-8 h-8 bg-yellow-500 rounded-full">
-                    <span className="text-white font-bold text-sm">?</span>
-                  </div>
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50 transition-colors">
-                <td className="px-8 py-5 whitespace-nowrap text-base font-semibold text-gray-900">
-                  Djokovic vs Nadal
-                </td>
-                <td className="px-8 py-5 whitespace-nowrap text-base text-gray-700">
-                  Djokovic Win
-                </td>
-                <td className="px-8 py-5 whitespace-nowrap text-center">
-                  <div className="inline-flex items-center justify-center w-8 h-8 bg-red-500 rounded-full">
-                    <span className="text-white font-bold text-lg">✗</span>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+       <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 overflow-x-auto">
+            <div className="min-w-full">
+              <table className="w-full min-w-[600px]">
+                <thead className="bg-gradient-to-r from-green-500 to-green-600">
+                  <tr>
+                    <th className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-left text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+                      TEAMS
+                    </th>
+                    <th className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-left text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+                      TIPS
+                    </th>
+                    <th className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-left text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+                      RESULTS
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {isLoadingMatches ? (
+                    <tr>
+                      <td colSpan={3} className="px-4 sm:px-6 lg:px-8 py-8 text-center">
+                        <div className="flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                          <span className="ml-2 text-gray-600">Loading matches...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : matches.length > 0 ? (
+                    matches.map((match, index) => (
+                      <tr key={index} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-sm sm:text-base font-semibold text-gray-900">
+                          <div className="break-words">{match.teams}</div>
+                        </td>
+                        <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-sm sm:text-base text-gray-700">
+                          <div className="break-words">{match.tip}</div>
+                        </td>
+                        <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-center">
+                          {match.result === 'won' ? (
+                            <div className="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full">
+                              <span className="text-white font-bold text-sm sm:text-lg">✓</span>
+                            </div>
+                          ) : match.result === 'lost' ? (
+                            <div className="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 bg-red-500 rounded-full">
+                              <span className="text-white font-bold text-sm sm:text-lg">✗</span>
+                            </div>
+                          ) : (
+                            <div className="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 bg-yellow-500 rounded-full">
+                              <span className="text-white font-bold text-xs sm:text-sm">?</span>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="px-4 sm:px-6 lg:px-8 py-8 text-center">
+                        <div className="text-gray-600">No matches available for this date.</div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
         {/* Match Prediction Cards */}
         <div className="bg-white shadow rounded-lg p-6">
@@ -371,22 +503,40 @@ export default function Predictions() {
               <div className="text-center">
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">VIP 1</h3>
                 <div className="mb-4 text-left">
-                  <ul className="space-y-2">
-                    <li className="text-gray-900 font-semibold">Olympiacos vs Pafos FC</li>
-                    <li className="text-gray-900 font-semibold">Ajax vs Inter</li>
-                    <li className="text-gray-900 font-semibold">Bayern Munich vs Chelsea</li>
-                    <li className="text-gray-900 font-semibold">Liverpool vs Atletico Madrid</li>
-                  </ul>
+                  {isLoadingVipPackages ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500"></div>
+                      <span className="ml-2 text-gray-600">Loading matches...</span>
+                    </div>
+                  ) : getVipPackageByCategory('VIP1') ? (
+                    <ul className="space-y-2">
+                      {getVipPackageByCategory('VIP1')!.games.map((game, index) => (
+                        <li key={index} className="text-gray-900 font-semibold">
+                          {game.home_team} vs {game.away_team}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="text-gray-600 text-center py-4">
+                      No matches available
+                    </div>
+                  )}
                 </div>
                 {vipAvailability['VIP 1'] ? (
-                  <PaymentDropdown
-                    packageName="VIP 1"
-                    price="GHS 20"
-                    priceInGHS={20}
-                    priceInUSD={3}
-                    onPaymentSuccess={handlePaymentSuccess}
-                    onPaymentClose={handlePaymentClose}
-                  />
+                  getVipPackageByCategory('VIP1') ? (
+                    <PaymentDropdown
+                      packageName="VIP 1"
+                      price={`GHS ${getVipPackageByCategory('VIP1')!.price}`}
+                      priceInGHS={Number(getVipPackageByCategory('VIP1')!.price)}
+                      priceInUSD={Math.round(Number(getVipPackageByCategory('VIP1')!.price) * 0.15)}
+                      onPaymentSuccess={handlePaymentSuccess}
+                      onPaymentClose={handlePaymentClose}
+                    />
+                  ) : (
+                    <div className="bg-gray-500 text-white py-3 px-4 rounded-lg font-bold text-lg">
+                      NOT AVAILABLE
+                    </div>
+                  )
                 ) : (
                   <div className="bg-red-500 text-white py-3 px-4 rounded-lg font-bold text-lg">
                     SOLD OUT
@@ -404,22 +554,40 @@ export default function Predictions() {
               <div className="text-center">
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">VIP 2</h3>
                 <div className="mb-4 text-left">
-                  <ul className="space-y-2">
-                    <li className="text-gray-900 font-semibold">Arsenal vs Chelsea</li>
-                    <li className="text-gray-900 font-semibold">Barcelona vs Real Madrid</li>
-                    <li className="text-gray-900 font-semibold">PSG vs Bayern Munich</li>
-                    <li className="text-gray-900 font-semibold">Manchester City vs Liverpool</li>
-                  </ul>
+                  {isLoadingVipPackages ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500"></div>
+                      <span className="ml-2 text-gray-600">Loading matches...</span>
+                    </div>
+                  ) : getVipPackageByCategory('VIP2') ? (
+                    <ul className="space-y-2">
+                      {getVipPackageByCategory('VIP2')!.games.map((game, index) => (
+                        <li key={index} className="text-gray-900 font-semibold">
+                          {game.home_team} vs {game.away_team}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="text-gray-600 text-center py-4">
+                      No matches available
+                    </div>
+                  )}
                 </div>
                 {vipAvailability['VIP 2'] ? (
-                  <PaymentDropdown
-                    packageName="VIP 2"
-                    price="GHS 35"
-                    priceInGHS={35}
-                    priceInUSD={5}
-                    onPaymentSuccess={handlePaymentSuccess}
-                    onPaymentClose={handlePaymentClose}
-                  />
+                  getVipPackageByCategory('VIP2') ? (
+                    <PaymentDropdown
+                      packageName="VIP 2"
+                      price={`GHS ${getVipPackageByCategory('VIP2')!.price}`}
+                      priceInGHS={Number(getVipPackageByCategory('VIP2')!.price)}
+                      priceInUSD={Math.round(Number(getVipPackageByCategory('VIP2')!.price) * 0.15)}
+                      onPaymentSuccess={handlePaymentSuccess}
+                      onPaymentClose={handlePaymentClose}
+                    />
+                  ) : (
+                    <div className="bg-gray-500 text-white py-3 px-4 rounded-lg font-bold text-lg">
+                      NOT AVAILABLE
+                    </div>
+                  )
                 ) : (
                   <div className="bg-red-500 text-white py-3 px-4 rounded-lg font-bold text-lg">
                     SOLD OUT
@@ -428,7 +596,7 @@ export default function Predictions() {
               </div>
             </div>
 
-            {/* VIP Package 3 - Results Uploaded */}
+            {/* VIP Package 3 */}
             <div className={`bg-white border rounded-lg shadow-lg p-6 transition-shadow ${
               vipAvailability['VIP 3'] 
                 ? 'border-gray-200 hover:shadow-xl' 
@@ -437,73 +605,69 @@ export default function Predictions() {
               <div className="text-center">
                 <h3 className="text-2xl font-bold text-gray-900 mb-6">VIP 3</h3>
                 <div className="mb-6 text-left space-y-4">
-                  {/* Match 1 - Win */}
-                  <div className="border-b border-gray-100 pb-3">
-                    <h4 className="text-gray-900 font-semibold mb-2">Juventus vs AC Milan</h4>
-                    <div className="text-sm text-gray-600 mb-2">Prediction: Home</div>
-                    <div className="text-sm text-gray-600 mb-2">Odds: 1.45</div>
-                    <div className="flex items-center gap-2">
-                      <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Option: Home</span>
-                      <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Odds: 1.45</span>
-                      <span className="ml-auto">
-                        <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
-                          <span className="text-white font-bold text-sm">✓</span>
-                        </div>
-                      </span>
+                  {isLoadingVipPackages ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500"></div>
+                      <span className="ml-2 text-gray-600">Loading matches...</span>
                     </div>
-                  </div>
-
-                  {/* Match 2 - Win */}
-                  <div className="border-b border-gray-100 pb-3">
-                    <h4 className="text-gray-900 font-semibold mb-2">Inter Milan vs Napoli</h4>
-                    <div className="text-sm text-gray-600 mb-2">Prediction: Away</div>
-                    <div className="text-sm text-gray-600 mb-2">Odds: 1.78</div>
-                    <div className="flex items-center gap-2">
-                      <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Option: Away</span>
-                      <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Odds: 1.78</span>
-                      <span className="ml-auto">
-                        <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
-                          <span className="text-white font-bold text-sm">✓</span>
+                  ) : getVipPackageByCategory('VIP3') ? (
+                    getVipPackageByCategory('VIP3')!.games.map((game, index) => (
+                      <div key={index} className={`${index < getVipPackageByCategory('VIP3')!.games.length - 1 ? 'border-b border-gray-100 pb-3' : ''}`}>
+                        <h4 className="text-gray-900 font-semibold mb-2">{game.home_team} vs {game.away_team}</h4>
+                        <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
+                        <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div>
+                        <div className="flex items-center gap-2">
+                          <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Option: {game.prediction}</span>
+                          <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Odds: {game.odds}</span>
+                          <span className="ml-auto">
+                            {game.match_status === 'won' ? (
+                              <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
+                                <span className="text-white font-bold text-sm">✓</span>
+                              </div>
+                            ) : game.match_status === 'lost' ? (
+                              <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full">
+                                <span className="text-white font-bold text-sm">✗</span>
+                              </div>
+                            ) : (
+                              <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full">
+                                <span className="text-white font-bold text-sm">?</span>
+                              </div>
+                            )}
+                          </span>
                         </div>
-                      </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-gray-600 text-center py-4">
+                      No matches available
                     </div>
-                  </div>
-
-                  {/* Match 3 - Loss */}
-                  <div className="border-b border-gray-100 pb-3">
-                    <h4 className="text-gray-900 font-semibold mb-2">Atletico Madrid vs Sevilla</h4>
-                    <div className="text-sm text-gray-600 mb-2">Prediction: Home</div>
-                    <div className="text-sm text-gray-600 mb-2">Odds: 1.71</div>
-                    <div className="flex items-center gap-2">
-                      <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Option: Home</span>
-                      <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Odds: 1.71</span>
-                      <span className="ml-auto">
-                        <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full">
-                          <span className="text-white font-bold text-sm">✗</span>
-                        </div>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Match 4 - Win */}
-                  <div>
-                    <h4 className="text-gray-900 font-semibold mb-2">Newcastle vs FC Barcelona</h4>
-                    <div className="text-sm text-gray-600 mb-2">Prediction: Home</div>
-                    <div className="text-sm text-gray-600 mb-2">Odds: 1.55</div>
-                    <div className="flex items-center gap-2">
-                      <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Option: Home</span>
-                      <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Odds: 1.55</span>
-                      <span className="ml-auto">
-                        <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
-                          <span className="text-white font-bold text-sm">✓</span>
-                        </div>
-                      </span>
-                    </div>
-                  </div>
+                  )}
                 </div>
-                {/* No Buy Now button - results are uploaded */}
-                {!vipAvailability['VIP 3'] && (
-                  <div className="bg-red-500 text-white py-3 px-4 rounded-lg font-bold text-lg mt-4">
+                {/* Show payment button if available and no results yet, otherwise show status */}
+                {vipAvailability['VIP 3'] ? (
+                  getVipPackageByCategory('VIP3') ? (
+                    // Check if any matches have results (won/lost) - if so, don't show payment button
+                    getVipPackageByCategory('VIP3')!.games.some(game => game.match_status === 'won' || game.match_status === 'lost') ? (
+                      <div className="bg-blue-500 text-white py-3 px-4 rounded-lg font-bold text-lg mt-4">
+                        RESULTS UPLOADED
+                      </div>
+                    ) : (
+                      <PaymentDropdown
+                        packageName="VIP 3"
+                        price={`GHS ${getVipPackageByCategory('VIP3')!.price}`}
+                        priceInGHS={Number(getVipPackageByCategory('VIP3')!.price)}
+                        priceInUSD={Math.round(Number(getVipPackageByCategory('VIP3')!.price) * 0.15)}
+                        onPaymentSuccess={handlePaymentSuccess}
+                        onPaymentClose={handlePaymentClose}
+                      />
+                    )
+                  ) : (
+                    <div className="bg-gray-500 text-white py-3 px-4 rounded-lg font-bold text-lg">
+                      NOT AVAILABLE
+                    </div>
+                  )
+                ) : (
+                  <div className="bg-red-500 text-white py-3 px-4 rounded-lg font-bold text-lg">
                     SOLD OUT
                   </div>
                 )}

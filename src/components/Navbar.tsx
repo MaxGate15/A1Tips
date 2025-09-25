@@ -8,13 +8,22 @@ import { useAuth } from '../hooks/useAuth';
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { isAuthenticated, logout, user } = useAuth();
 
+  // Check admin status from localStorage
+  useEffect(() => {
+    const adminLoggedIn = localStorage.getItem('is_admin');
+    if (adminLoggedIn === '1') {
+      setIsAdmin(true);
+    }
+  }, [isAuthenticated]); // Re-check when authentication state changes
+
   // Debug authentication state
   useEffect(() => {
-    console.log('🧭 Navbar: Authentication state changed - isAuthenticated:', isAuthenticated, 'user:', user);
-  }, [isAuthenticated, user]);
+    console.log('🧭 Navbar: Authentication state changed - isAuthenticated:', isAuthenticated, 'user:', user, 'isAdmin:', isAdmin);
+  }, [isAuthenticated, user, isAdmin]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -62,6 +71,15 @@ export default function Navbar() {
               >
                 About Us
               </Link>
+              {/* Admin button - only show if user is admin */}
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="text-black hover:bg-green-500 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Admin
+                </Link>
+              )}
             </div>
           </div>
 
@@ -178,6 +196,17 @@ export default function Navbar() {
             >
               About Us
             </Link>
+            
+            {/* Admin button - only show if user is admin */}
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="bg-red-600 hover:bg-red-700 text-white block px-3 py-2 rounded-md text-base font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Admin
+              </Link>
+            )}
             
             {/* Mobile authentication options */}
             {!isAuthenticated ? (
