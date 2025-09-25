@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect,useCallback } from 'react';
+import { useState, useEffect,useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaCalendarAlt, FaCrown, FaFire, FaTrophy, FaClock } from 'react-icons/fa';
+import { FaCalendarAlt, FaCrown, FaFire, FaTrophy, FaClock, FaCopy } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
 import PaymentDropdown from '../../components/PaymentDropdown';
 
@@ -28,6 +28,23 @@ export default function Predictions() {
     games: {home_team: string, away_team: string, prediction: string, odds: number, match_status: string}[];
   }[]>([]);
   const [isLoadingVipPackages, setIsLoadingVipPackages] = useState(true);
+  const [showBookingDropdown, setShowBookingDropdown] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const bookingDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (bookingDropdownRef.current && !bookingDropdownRef.current.contains(event.target as Node)) {
+        setShowBookingDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
    const fetchMatchesForDate = useCallback(async (date: string) => {
       setIsLoadingMatches(true);
@@ -261,6 +278,23 @@ export default function Predictions() {
     console.log('Payment cancelled');
   };
 
+  const handleBookingToggle = () => {
+    setShowBookingDropdown(!showBookingDropdown);
+  };
+
+  const copyToClipboard = async (text: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedIndex(index);
+      // Reset after 2 seconds
+      setTimeout(() => {
+        setCopiedIndex(null);
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+    }
+  };
+
   // Helper function to get VIP package data by category
   const getVipPackageByCategory = (category: string) => {
     return vipPackages.find(pkg => pkg.category === category);
@@ -481,6 +515,48 @@ export default function Predictions() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          {/* Booking and View All Predictions Buttons */}
+          <div className="text-center mt-6 sm:mt-8 space-y-3 sm:space-y-4 px-4">
+            {/* Booking Button with Dropdown */}
+            <div className="relative inline-block" ref={bookingDropdownRef}>
+              <button
+                onClick={handleBookingToggle}
+                className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-colors text-sm sm:text-base"
+              >
+                Booking
+              </button>
+              
+              {/* Booking Dropdown */}
+              {showBookingDropdown && (
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 sm:left-0 sm:transform-none mt-2 w-56 sm:w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                  <div className="p-3 sm:p-4">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">Booking Codes</h3>
+                    <div className="space-y-2">
+                      {bookingCodes.map((booking, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
+                          <div className="font-semibold text-gray-900 text-sm sm:text-base">
+                            <span className="break-all">{booking.platform}:{booking.code}</span>
+                          </div>
+                          <button
+                            onClick={() => copyToClipboard(`${booking.platform}:${booking.code}`, index)}
+                            className="p-2 bg-green-500 hover:bg-green-600 text-white rounded transition-colors min-w-[40px] text-center flex-shrink-0"
+                            title="Copy to clipboard"
+                          >
+                            {copiedIndex === index ? (
+                              <span className="text-xs sm:text-sm font-semibold">Copied!</span>
+                            ) : (
+                              <FaCopy className="w-3 h-3 sm:w-4 sm:h-4" />
+                            )}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
