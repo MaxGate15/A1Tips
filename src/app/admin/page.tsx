@@ -248,7 +248,8 @@ export default function Admin() {
         // Transform API response to match current UI format
         const transformedSlips = bookingsData.map((booking, bookingIndex) => {
           return booking.games.map((game, gameIndex) => ({
-            id: `slip_${bookingIndex}_${gameIndex}_${Date.now()}`, // Unique ID for each game
+            id: `${booking.booking.id}_${game.id}_${bookingIndex}_${gameIndex}`, // Create unique ID combining booking and game
+            originalId: game.id, // Keep original ID for backend reference
             match: `${game.home_team} vs ${game.away_team}`,
             type: game.prediction,
             odds: game.odds,
@@ -257,8 +258,8 @@ export default function Admin() {
             uploadDate: booking.booking.deadline,
             sportyCode: booking.booking.share_code,
             msportCode: booking.booking.share_code, // Use same code as fallback
-            result: game.match_status === 'pending' ? undefined : game.match_status,
-            status: game.match_status === 'pending' ? 'Pending' : 'Completed'
+            match_status: game.match_status || 'Pending',
+            booking_id: booking.booking.id // Store booking ID for backend updates
           }));
         }).flat(); // Flatten array of arrays into single array
         
@@ -443,10 +444,10 @@ export default function Admin() {
     }
     
     // Always close the modal after processing (success or validation)
-    setShowBookingModal(false);
-    setSelectedGame(null);
-    setSportyCode('');
-    setMsportCode('');
+      setShowBookingModal(false);
+      setSelectedGame(null);
+      setSportyCode('');
+      setMsportCode('');
   };
 
   const handleCancelBooking = () => {
@@ -564,16 +565,19 @@ export default function Admin() {
     }
   };
 
-  const handleEditGame = (game) => {
+  const handleEditGame = (game, slipId = null) => {
+    console.log('Editing game:', game.id, 'with status:', game.match_status, 'match:', game.match);
     setEditingGame(game);
-    setGameResult(game.result || '');       
+    setGameResult(game.match_status || 'Pending');       
     setShowEditModal(true);
   };
 
-  const handleSaveResult = (result) => {
+  const handleSaveResult = async (result) => {
     if (result && editingGame) {
       console.log('Updating game result:', { 
         editingGameId: editingGame.id, 
+        originalId: editingGame.originalId,
+        match: editingGame.match,
         result: result,
         allSlipsCount: loadedGames.Slips.length 
       });
@@ -582,8 +586,10 @@ export default function Admin() {
       setLoadedGames(prev => {
         const updatedSlips = prev.Slips.map(game => {
           if (game.id === editingGame.id) {
-            console.log('Found matching game to update:', game.id);
-            return { ...game, result: result, status: 'Completed' };
+            console.log('Found matching game to update:', game.id, 'match:', game.match, 'from', game.match_status, 'to', result);
+            const updatedGame = { ...game, match_status: result };
+            console.log('Updated game object:', updatedGame);
+            return updatedGame;
           }
           return game;
         });
@@ -1255,8 +1261,12 @@ export default function Admin() {
                             {/* Individual Games */}
                             {expandedSlips.includes(slip.id) && (
                               <div className="space-y-2">
-                                {slip.games.map((game, index) => (
-                                  <div key={game.id} className="bg-white rounded border border-gray-200 p-2">
+                                {slip.games.map((game) => (
+                                  <div key={`${game.id}-${game.match_status}`} className={`bg-white rounded border p-2 ${
+                                    showEditModal && editingGame && editingGame.id === game.id 
+                                      ? 'border-blue-500 bg-blue-50' 
+                                      : 'border-gray-200'
+                                  }`}>
                                     {/* Game Header */}
                                     <div className="flex items-center justify-between mb-2">
                                       <div className="flex-1">
@@ -1264,30 +1274,30 @@ export default function Admin() {
                                           <div className="text-sm font-medium text-gray-900">{game.match}</div>
                                           {/* Result Status Icon */}
                                           <div className="ml-1">
-                                            {game.result === 'Won' && (
-                                              <div className="w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
-                                                <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            {game.match_status === 'Won' && (
+                                              <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center ml-2">
+                                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                                 </svg>
                                               </div>
                                             )}
-                                            {game.result === 'Lost' && (
-                                              <div className="w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-                                                <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            {game.match_status === 'Lost' && (
+                                              <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center ml-2">
+                                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                                                   <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                                                 </svg>
                                               </div>
                                             )}
-                                            {game.result === 'Pending' && (
-                                              <div className="w-3 h-3 bg-orange-500 rounded-full flex items-center justify-center">
-                                                <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            {(game.match_status === 'Pending' || game.match_status === 'pending') && (
+                                              <div className="w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center ml-2">
+                                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                                                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
                                                 </svg>
                                               </div>
                                             )}
-                                            {!game.result && (
-                                              <div className="w-3 h-3 bg-gray-400 rounded-full flex items-center justify-center">
-                                                <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            {(!game.match_status || game.match_status === '') && (
+                                              <div className="w-4 h-4 bg-gray-400 rounded-full flex items-center justify-center ml-2">
+                                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                                                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
                                                 </svg>
                                               </div>
@@ -1303,10 +1313,14 @@ export default function Admin() {
                                       <div className="flex items-center space-x-2">
                                         <span className="text-sm font-medium text-gray-900">{game.odds}</span>
                                         <button
-                                          onClick={() => handleEditGame(game)}
-                                          className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs"
+                                          onClick={() => handleEditGame(game, slip.id)}
+                                          className={`px-2 py-1 rounded text-xs text-white ${
+                                            showEditModal && editingGame && editingGame.id === game.id
+                                              ? 'bg-green-600 hover:bg-green-700'
+                                              : 'bg-blue-600 hover:bg-blue-700'
+                                          }`}
                                         >
-                                          Edit
+                                          {showEditModal && editingGame && editingGame.id === game.id ? 'Editing...' : 'Edit'}
                                         </button>
                                       </div>
                                     </div>
@@ -1315,7 +1329,9 @@ export default function Admin() {
                                     {showEditModal && editingGame && editingGame.id === game.id && (
                                       <div className="border-t border-gray-200 pt-2 mt-2">
                                         <div className="flex items-center justify-between">
-                                          <div className="text-xs font-medium text-gray-700">Update Result:</div>
+                                          <div className="text-xs font-medium text-gray-700">
+                                            Update Result for: {game.match}
+                                          </div>
                                           
                                           {/* Result Action Buttons */}
                                           <div className="flex gap-1">
