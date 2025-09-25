@@ -15,7 +15,7 @@ export default function Admin() {
   useEffect(() => {
     const fetchVipPlans = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/games/vip-list');
+        const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/games/vip-list');
         
         if (!response.ok) {
           throw new Error(`Failed to fetch VIP plans: ${response.statusText}`);
@@ -141,21 +141,21 @@ export default function Admin() {
       const statsConfig = [
         {
           title: 'Total Users',
-          endpoint: 'http://127.0.0.1:8000/auth/total-users',
+          endpoint: 'https://coral-app-l62hg.ondigitalocean.app/auth/total-users',
           icon: FaUsers,
           color: 'text-blue-600',
           bgColor: 'bg-blue-100'
         },
         {
           title: 'Active Games',
-          endpoint: 'http://127.0.0.1:8000/games/number-of-vip-bookings-today',
+          endpoint: 'https://coral-app-l62hg.ondigitalocean.app/games/number-of-vip-bookings-today',
           icon: FaGamepad,
           color: 'text-green-600',
           bgColor: 'bg-green-100'
         },
         {
           title: 'VIP Subscriptions',
-          endpoint: 'http://127.0.0.1:8000/payment/number-of-purchases',
+          endpoint: 'https://coral-app-l62hg.ondigitalocean.app/payment/number-of-purchases',
           icon: FaCrown,
           color: 'text-orange-600',
           bgColor: 'bg-orange-100'
@@ -204,7 +204,7 @@ export default function Admin() {
       
       setIsLoadingUsers(true);
       try {
-        const response = await fetch('http://127.0.0.1:8000/auth/all-users');
+        const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/auth/all-users');
         
         if (!response.ok) {
           throw new Error(`Failed to fetch users: ${response.statusText}`);
@@ -235,7 +235,7 @@ export default function Admin() {
       if (!isAuthenticated) return;
       
       try {
-        const response = await fetch('http://127.0.0.1:8000/games/all-bookings');
+        const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/games/all-bookings');
         
         if (!response.ok) {
           throw new Error(`Failed to fetch existing slips: ${response.statusText}`);
@@ -295,8 +295,8 @@ export default function Admin() {
 
       const newStatus = currentPlan.status === 'Available' ? 'Sold Out' : 'Available';
       const endpoint = newStatus === 'Sold Out' 
-        ? `http://127.0.0.1:8000/games/mark-sold-out/${planId}`
-        : `http://127.0.0.1:8000/games/update-availability/${planId}`;
+        ? `https://coral-app-l62hg.ondigitalocean.app/games/mark-sold-out/${planId}`
+        : `https://coral-app-l62hg.ondigitalocean.app/games/update-availability/${planId}`;
 
       console.log(`Updating VIP plan ${planId} to ${newStatus}...`);
 
@@ -344,7 +344,7 @@ export default function Admin() {
     if (!currentBookingCode.trim()) return;
     
     try {
-      const response = await fetch(`http://127.0.0.1:8000/games/load-booking/${currentBookingCode}`);
+      const response = await fetch(`https://coral-app-l62hg.ondigitalocean.app/games/load-booking/${currentBookingCode}`);
       
       if (!response.ok) {
         throw new Error(`Failed to load booking: ${response.statusText}`);
@@ -523,7 +523,7 @@ export default function Admin() {
       };
       console.log('Uploading booking with data:', requestBody);
 
-      const response = await fetch('http://127.0.0.1:8000/games/upload-booking', {
+      const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/games/upload-booking', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -634,7 +634,7 @@ export default function Admin() {
     try {
       // Encode the message for URL query parameter
       const encodedMessage = encodeURIComponent(smsMessage.trim());
-      const endpoint = `http://127.0.0.1:8000/sms/send_bulk?message=${encodedMessage}`;
+      const endpoint = `https://coral-app-l62hg.ondigitalocean.app/sms/send_bulk?message=${encodedMessage}`;
 
       console.log('Sending SMS to API:', { message: smsMessage, recipients: smsRecipients });
 

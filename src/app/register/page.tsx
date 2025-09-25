@@ -65,7 +65,7 @@ export default function Register() {
           is_staff: false
         };
 
-        const response = await fetch('http://127.0.0.1:8000/auth/sign-up', {
+        const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/auth/sign-up', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

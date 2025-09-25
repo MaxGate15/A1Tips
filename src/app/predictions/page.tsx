@@ -37,7 +37,7 @@ export default function Predictions() {
         
         // Determine which API to call based on date
         if (date === 'today') {
-          endpoint = 'http://127.0.0.1:8000/games/free-bookings';
+          endpoint = 'https://coral-app-l62hg.ondigitalocean.app/games/free-bookings';
         } else {
           // Convert date string to actual date for API
           let apiDate = today; // default to today
@@ -55,7 +55,7 @@ export default function Predictions() {
             apiDate = dateFilter;
           }
           
-          endpoint = `http://127.0.0.1:8000/games/other-games?date=${apiDate}`;
+          endpoint = `https://coral-app-l62hg.ondigitalocean.app/games/other-games?date=${apiDate}`;
         }
   
         console.log('Fetching matches from:', endpoint);
@@ -135,7 +135,7 @@ export default function Predictions() {
     const fetchVipAvailability = async () => {
       try {
         console.log('Fetching VIP availability from API...');
-        const response = await fetch('http://127.0.0.1:8000/games/vip-list');
+        const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/games/vip-list');
         
         if (!response.ok) {
           throw new Error(`Failed to fetch VIP availability: ${response.statusText}`);
@@ -206,7 +206,7 @@ export default function Predictions() {
       setIsLoadingVipPackages(true);
       try {
         console.log('Fetching VIP packages from API...');
-        const response = await fetch('http://127.0.0.1:8000/games/vip-for-today');
+        const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/games/vip-for-today');
         
         if (!response.ok) {
           throw new Error(`Failed to fetch VIP packages: ${response.statusText}`);

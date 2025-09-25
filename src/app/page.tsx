@@ -42,7 +42,7 @@ export default function Home() {
       
       // Determine which API to call based on date
       if (date === 'today') {
-        endpoint = 'http://127.0.0.1:8000/games/free-bookings';
+        endpoint = 'https://coral-app-l62hg.ondigitalocean.app/games/free-bookings';
       } else {
         // Convert date string to actual date for API
         let apiDate = today; // default to today
@@ -60,7 +60,7 @@ export default function Home() {
           apiDate = dateFilter;
         }
         
-        endpoint = `http://127.0.0.1:8000/games/other-games?date=${apiDate}`;
+        endpoint = `https://coral-app-l62hg.ondigitalocean.app/games/other-games?date=${apiDate}`;
       }
 
       console.log('Fetching matches from:', endpoint);
