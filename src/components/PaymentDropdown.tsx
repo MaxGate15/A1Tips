@@ -70,6 +70,8 @@ export default function PaymentDropdown({
       document.body.removeChild(script);
     };
   }, []);
+  console.log('Price in GHS:', priceInGHS);
+  console.log('Price in USD:', priceInUSD);
 
 
 
@@ -91,7 +93,7 @@ export default function PaymentDropdown({
     const handler = window.PaystackPop.setup({
       key: publicKey,
       email: getEmail,
-      amount: country === 'ghana' ? priceInGHS * 0.1 : priceInUSD * 0.1,
+      amount: country === 'ghana' ? Math.round(priceInGHS * 100) : Math.round(priceInUSD * 100),
       currency: country === 'ghana' ? 'GHS' : 'USD',
       channels: country === 'ghana' 
         ? ['card', 'mobile_money', 'bank_transfer'] 
