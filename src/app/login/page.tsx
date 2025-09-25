@@ -56,6 +56,16 @@ export default function Login() {
               loginTime: new Date().toISOString()
             }));
             
+            // Call login() to set user state in useAuth
+            const userData = {
+              id: data.id || '1',
+              username: data.username,
+              email: data.email,
+              phone: '+233 XX XXX XXXX' // or use actual phone from API if available
+            };
+            
+            login(userData);
+            
             setTimeout(() => {
               window.location.href = '/';
             }, 100);

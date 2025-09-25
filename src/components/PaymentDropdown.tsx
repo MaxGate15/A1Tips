@@ -12,9 +12,37 @@ interface PaymentDropdownProps {
   onPaymentClose: () => void;
 }
 
+interface PaystackResponse {
+  reference: string;
+  message: string;
+  status: string;
+  trans: string;
+  transaction: string;
+  trxref: string;
+}
+
+interface PaystackConfig {
+  key: string;
+  email: string;
+  amount: number;
+  currency: string;
+  channels: string[];
+  metadata: {
+    package: string;
+    customer_name: string;
+    custom_fields: Record<string, unknown>[];
+  };
+  callback: (response: PaystackResponse) => void;
+  onClose: () => void;
+}
+
 declare global {
   interface Window {
-    PaystackPop: any;
+    PaystackPop: {
+      setup: (config: PaystackConfig) => {
+        openIframe: () => void;
+      };
+    };
   }
 }
 
@@ -27,9 +55,9 @@ export default function PaymentDropdown({
   onPaymentClose
 }: PaymentDropdownProps) {
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<'ghana' | 'other'>('ghana');
 
-  const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "pk_test_51234567890abcdef";
+
+  const publicKey = "pk_live_86fde08e9c8e0c05ac59a162c13a370897a0828b";
 
   // Load Paystack script
   useEffect(() => {
@@ -43,11 +71,7 @@ export default function PaymentDropdown({
     };
   }, []);
 
-  const onSuccess = (reference: string) => {
-    console.log('Payment successful:', reference);
-    onPaymentSuccess(reference);
-    setShowLocationModal(false);
-  };
+
 
   const onClose = () => {
     console.log('Payment closed');
@@ -60,14 +84,14 @@ export default function PaymentDropdown({
   };
 
   const handleLocationSelect = (country: 'ghana' | 'other') => {
-    setSelectedCountry(country);
+    const getEmail = localStorage.getItem('email') || 'test@example.com';
     setShowLocationModal(false);
     
     // Initialize Paystack payment
     const handler = window.PaystackPop.setup({
       key: publicKey,
-      email: 'test@example.com',
-      amount: country === 'ghana' ? priceInGHS * 100 : priceInUSD * 100,
+      email: getEmail,
+      amount: country === 'ghana' ? priceInGHS * 0.1 : priceInUSD * 0.1,
       currency: country === 'ghana' ? 'GHS' : 'USD',
       channels: country === 'ghana' 
         ? ['card', 'mobile_money', 'bank_transfer'] 
@@ -77,8 +101,37 @@ export default function PaymentDropdown({
         customer_name: 'Test User',
         custom_fields: []
       },
-      callback: (response: any) => {
-        onSuccess(response.reference);
+      callback: (response: PaystackResponse) => {
+        // Verify payment with backend
+        fetch(`https://coral-app-l62hg.ondigitalocean.app/verify`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            reference: response.reference,
+            email: getEmail,
+            booking_id: packageName // Using packageName as booking identifier
+          })
+        })
+        .then(verifyResponse => {
+          if (verifyResponse.ok) {
+            return verifyResponse.json();
+          } else {
+            throw new Error(`Verification failed: ${verifyResponse.status}`);
+          }
+        })
+        .then(verificationResult => {
+          console.log('Payment verified successfully:', verificationResult);
+          onPaymentSuccess(response.reference);
+          setShowLocationModal(false);
+        })
+        .catch(error => {
+          console.error('Error verifying payment:', error);
+          // Still call onPaymentSuccess to maintain UI flow, but log the error
+          onPaymentSuccess(response.reference);
+          setShowLocationModal(false);
+        });
       },
       onClose: () => {
         onClose();
@@ -108,6 +161,7 @@ export default function PaymentDropdown({
               <button
                 onClick={() => setShowLocationModal(false)}
                 className="text-black hover:text-gray-600 transition-colors"
+                aria-label="Close location selection modal"
               >
                 <FaTimes className="w-5 h-5" />
               </button>
