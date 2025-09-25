@@ -998,19 +998,19 @@ export default function Admin() {
         <div className="flex-1 p-4 md:p-8">
           {/* Dashboard Overview */}
           {activeTab === 'dashboard' && (
-            <div className="space-y-8">
+            <div className="space-y-4 md:space-y-6">
               <h2 className="text-lg md:text-2xl font-bold text-gray-900">Dashboard Overview</h2>
               
               {/* Stats Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                 {stats.map((stat, index) => (
-                  <div key={index} className="bg-white rounded-lg shadow-sm border p-4 md:p-6">
+                  <div key={index} className="bg-white rounded-lg shadow-sm border p-3 md:p-4">
                     <div className="flex items-center">
-                      <div className={`p-2 md:p-3 rounded-full ${stat.bgColor}`}>
-                        <stat.icon className={`h-6 w-6 md:h-8 md:w-8 ${stat.color}`} />
+                      <div className={`p-1.5 md:p-2 rounded-full ${stat.bgColor}`}>
+                        <stat.icon className={`h-4 w-4 md:h-5 md:w-5 ${stat.color}`} />
                       </div>
-                      <div className="ml-3 md:ml-4">
-                        <div className={`text-lg md:text-2xl lg:text-3xl font-bold ${stat.color}`}>
+                      <div className="ml-2 md:ml-3">
+                        <div className={`text-sm md:text-lg lg:text-xl font-bold ${stat.color}`}>
                           {stat.value}
                         </div>
                         <div className="text-xs text-gray-600">
@@ -1041,7 +1041,7 @@ export default function Admin() {
 
           {/* Games Tab */}
           {activeTab === 'games' && (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               <h2 className="text-lg md:text-2xl font-bold text-gray-900">Games Management</h2>
               
               {/* Filter Games by Category */}
@@ -1551,20 +1551,20 @@ export default function Admin() {
           )}
 
           {activeTab === 'gamesControl' && (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               <h2 className="text-lg md:text-2xl font-bold text-gray-900">VIP Games Control</h2>
               
               {/* VIP Plan Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 {vipPlans.map((plan) => (
-                  <div key={plan.id} className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
+                  <div key={plan.id} className="bg-white rounded-lg border border-gray-200 p-3 md:p-4">
                     <div className="text-center">
-                      <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">{plan.name}</h3>
+                      <h3 className="text-sm md:text-base font-semibold text-gray-900 mb-2 md:mb-3">{plan.name}</h3>
                       
                       {/* Status Badge */}
-                      <div className="mb-4">
+                      <div className="mb-2 md:mb-3">
                         <span
-                          className={`inline-block px-3 py-1 rounded text-sm font-medium text-white ${
+                          className={`inline-block px-2 py-1 rounded text-xs font-medium text-white ${
                             plan.status === 'Available'
                               ? 'bg-green-600'
                               : 'bg-orange-600'
@@ -1577,7 +1577,7 @@ export default function Admin() {
                       {/* Toggle Button */}
                       <button
                         onClick={() => toggleVipPlanStatus(plan.id)}
-                        className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${
+                        className={`w-full py-2 px-3 rounded-lg text-xs md:text-sm font-medium text-white transition-colors ${
                           plan.status === 'Available'
                             ? 'bg-orange-600 hover:bg-orange-700'
                             : 'bg-green-600 hover:bg-green-700'
@@ -1593,7 +1593,7 @@ export default function Admin() {
           )}
 
           {activeTab === 'users' && (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               <h2 className="text-lg md:text-2xl font-bold text-gray-900">User Management</h2>
               
               {/* User Table - Mobile Responsive */}
@@ -1771,7 +1771,7 @@ export default function Admin() {
           )}
 
           {activeTab === 'sms' && (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               <h2 className="text-lg md:text-2xl font-bold text-gray-900">SMS Broadcasting</h2>
               
               {/* Send SMS Card */}
@@ -1843,7 +1843,7 @@ export default function Admin() {
           )}
 
           {activeTab === 'settings' && (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
                 <div className="flex justify-between items-center">
                 <h2 className="text-lg md:text-2xl font-bold text-gray-900">Settings & Admin Management</h2>
                 <button 
