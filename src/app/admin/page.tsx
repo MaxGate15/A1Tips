@@ -726,7 +726,7 @@ export default function Admin() {
 
   const groupGamesIntoSlips = () => {
     // Group games by upload date to create slip batches
-    const slipGroups = {};
+    const slipGroups: {[key: string]: any[]} = {};
     loadedGames.Slips.forEach(game => {
       const slipKey = game.uploadDate || 'default';
       if (!slipGroups[slipKey]) {
@@ -740,10 +740,10 @@ export default function Admin() {
       slipNumber: index + 1,
       games: games,
       uploadDate: date,
-      originalCategory: games[0]?.originalCategory || 'Free',
-      totalOdds: games.reduce((total, game) => total * game.odds, 1).toFixed(2),
-      sportyCode: games[0]?.sportyCode || 'N/A',
-      msportCode: games[0]?.msportCode || 'N/A'
+      originalCategory: (games as any[])[0]?.originalCategory || 'Free',
+      totalOdds: (games as any[]).reduce((total: number, game: any) => total * (game.odds || 1), 1).toFixed(2),
+      sportyCode: (games as any[])[0]?.sportyCode || 'N/A',
+      msportCode: (games as any[])[0]?.msportCode || 'N/A'
     }));
 
     // Filter out archived slips

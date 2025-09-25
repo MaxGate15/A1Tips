@@ -145,7 +145,7 @@ export default function Predictions() {
         console.log('Fetched VIP availability data:', data);
         
         // Transform API response to match expected state shape
-        const transformedAvailability: {[key: string]: boolean} = {
+        const transformedAvailability = {
           'VIP 1': false,
           'VIP 2': false,
           'VIP 3': false
@@ -154,7 +154,9 @@ export default function Predictions() {
         data.forEach((vip: {id: number, name: string, amount: number, available: boolean}) => {
           // Transform name format: VIP1 -> "VIP 1", VIP2 -> "VIP 2", etc.
           const formattedName = vip.name.replace(/VIP(\d+)/, 'VIP $1');
-          transformedAvailability[formattedName] = vip.available;
+          if (formattedName === 'VIP 1' || formattedName === 'VIP 2' || formattedName === 'VIP 3') {
+            transformedAvailability[formattedName as keyof typeof transformedAvailability] = vip.available;
+          }
         });
         
         console.log('Transformed VIP availability:', transformedAvailability);
