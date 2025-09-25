@@ -778,8 +778,8 @@ export default function Admin() {
         <div className="max-w-7xl mx-auto py-4 md:py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-white">A1Tips Admin</h1>
-              <p className="mt-2 text-blue-100">Control Panel</p>
+              <h1 className="text-xl md:text-3xl font-bold text-white">A1Tips Admin</h1>
+              <p className="mt-1 md:mt-2 text-sm md:text-base text-blue-100">Control Panel</p>
             </div>
             <div className="flex items-center space-x-2 md:space-x-4">
               {/* Mobile: open sidebar */}
@@ -790,20 +790,20 @@ export default function Admin() {
               >
                 <FaBars className="w-5 h-5" />
               </button>
-              <span className="text-blue-100">Admin User</span>
+              <span className="text-xs md:text-sm text-blue-100">Admin User</span>
               <button 
                 onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors flex items-center"
+                className="bg-red-600 hover:bg-red-700 text-white px-2 md:px-4 py-1 md:py-2 rounded-md transition-colors flex items-center text-xs md:text-sm"
               >
-                <FaSignOutAlt className="w-4 h-4 mr-2" />
-                Logout
+                <FaSignOutAlt className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Logout</span>
               </button>
               <button 
                 onClick={() => router.push('/')}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md transition-colors flex items-center"
+                className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 md:px-4 py-1 md:py-2 rounded-md transition-colors flex items-center text-xs md:text-sm"
               >
-                <FaHome className="w-4 h-4 mr-2" />
-                Home
+                <FaHome className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Home</span>
               </button>
             </div>
           </div>
@@ -999,7 +999,7 @@ export default function Admin() {
           {/* Dashboard Overview */}
           {activeTab === 'dashboard' && (
             <div className="space-y-8">
-              <h2 className="text-2xl font-bold text-gray-900">Dashboard Overview</h2>
+              <h2 className="text-lg md:text-2xl font-bold text-gray-900">Dashboard Overview</h2>
               
               {/* Stats Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
@@ -1010,10 +1010,10 @@ export default function Admin() {
                         <stat.icon className={`h-6 w-6 md:h-8 md:w-8 ${stat.color}`} />
                       </div>
                       <div className="ml-3 md:ml-4">
-                        <div className={`text-2xl md:text-3xl font-bold ${stat.color}`}>
+                        <div className={`text-lg md:text-2xl lg:text-3xl font-bold ${stat.color}`}>
                           {stat.value}
                         </div>
-                        <div className="text-xs md:text-sm text-gray-600">
+                        <div className="text-xs text-gray-600">
                           {stat.title}
                         </div>
                       </div>
@@ -1024,14 +1024,14 @@ export default function Admin() {
 
               {/* Recent Activity */}
               <div className="bg-white rounded-lg shadow-sm border">
-                <div className="px-4 md:px-6 py-4 border-b">
-                  <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+                <div className="px-4 md:px-6 py-3 md:py-4 border-b">
+                  <h3 className="text-base md:text-lg font-semibold text-gray-900">Recent Activity</h3>
                 </div>
                 <div className="divide-y">
                   {recentActivity.map((activity, index) => (
                     <div key={index} className="px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
-                      <span className="text-sm md:text-base text-gray-700">{activity.action}</span>
-                      <span className="text-xs md:text-sm text-gray-500">{activity.time}</span>
+                      <span className="text-xs md:text-sm text-gray-700">{activity.action}</span>
+                      <span className="text-xs text-gray-500">{activity.time}</span>
                     </div>
                   ))}
                 </div>
@@ -1042,11 +1042,11 @@ export default function Admin() {
           {/* Games Tab */}
           {activeTab === 'games' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900">Games Management</h2>
+              <h2 className="text-lg md:text-2xl font-bold text-gray-900">Games Management</h2>
               
               {/* Filter Games by Category */}
               <div className="bg-white rounded-lg shadow-sm border p-4 md:p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Filter Games by Category</h3>
+                <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Filter Games by Category</h3>
                 <div className="flex flex-wrap gap-2 md:gap-3">
                   <button 
                     onClick={() => {
@@ -1552,7 +1552,7 @@ export default function Admin() {
 
           {activeTab === 'gamesControl' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900">VIP Games Control</h2>
+              <h2 className="text-lg md:text-2xl font-bold text-gray-900">VIP Games Control</h2>
               
               {/* VIP Plan Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
@@ -1594,7 +1594,7 @@ export default function Admin() {
 
           {activeTab === 'users' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
+              <h2 className="text-lg md:text-2xl font-bold text-gray-900">User Management</h2>
               
               {/* User Table - Mobile Responsive */}
               <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
@@ -1772,15 +1772,15 @@ export default function Admin() {
 
           {activeTab === 'sms' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900">SMS Broadcasting</h2>
+              <h2 className="text-lg md:text-2xl font-bold text-gray-900">SMS Broadcasting</h2>
               
               {/* Send SMS Card */}
               <div className="bg-white rounded-lg shadow-sm border p-4 md:p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 md:mb-6">Send SMS</h3>
+                <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-6">Send SMS</h3>
                 
                 {/* Recipients Section */}
                 <div className="mb-4 md:mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2 md:mb-3">
                     Recipients
                   </label>
                   <div className="space-y-3">
@@ -1793,7 +1793,7 @@ export default function Admin() {
                         onChange={(e) => setSmsRecipients(e.target.value)}
                         className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                       />
-                      <span className="ml-3 text-sm text-gray-700">
+                      <span className="ml-3 text-xs md:text-sm text-gray-700">
                         All Users (1,234 recipients)
                       </span>
                     </label>
@@ -1815,7 +1815,7 @@ export default function Admin() {
 
                 {/* Message Section */}
                 <div className="mb-4 md:mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2 md:mb-3">
                     Message
                   </label>
                   <textarea
@@ -1844,23 +1844,24 @@ export default function Admin() {
 
           {activeTab === 'settings' && (
             <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900">Settings & Admin Management</h2>
+                <div className="flex justify-between items-center">
+                <h2 className="text-lg md:text-2xl font-bold text-gray-900">Settings & Admin Management</h2>
                 <button 
                   onClick={() => setShowAddAdminModal(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors flex items-center"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-2 md:px-4 py-1 md:py-2 rounded-md transition-colors flex items-center text-xs md:text-sm"
                 >
-                  <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                   </svg>
-                  Add New Admin
+                  <span className="hidden sm:inline">Add New Admin</span>
+                  <span className="sm:hidden">Add</span>
                 </button>
               </div>
               
               {/* Current Admins Table */}
               <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
                 <div className="px-4 md:px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900">Current Admins</h3>
+                  <h3 className="text-base md:text-lg font-semibold text-gray-900">Current Admins</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
