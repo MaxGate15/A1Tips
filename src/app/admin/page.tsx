@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaUsers, FaChartLine,FaHome, FaTrophy, FaDollarSign, FaCog, FaBell, FaCrown, FaSignOutAlt, FaTimes, FaGamepad, FaTachometerAlt } from 'react-icons/fa';
+import { FaUsers, FaChartLine,FaHome, FaTrophy, FaDollarSign, FaCog, FaBell, FaCrown, FaSignOutAlt, FaTimes, FaGamepad, FaTachometerAlt, FaBars } from 'react-icons/fa';
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -10,6 +10,7 @@ export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [stats, setStats] = useState([]);
   const [vipPlans, setVipPlans] = useState([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Fetch VIP plans from API
   useEffect(() => {
@@ -774,13 +775,21 @@ export default function Admin() {
     <div className="min-h-screen bg-gray-50">
       {/* Admin Header */}
       <div className="bg-blue-900">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto py-4 md:py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white">A1Tips Admin</h1>
               <p className="mt-2 text-blue-100">Control Panel</p>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 md:space-x-4">
+              {/* Mobile: open sidebar */}
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="md:hidden bg-blue-800 hover:bg-blue-700 text-white px-3 py-2 rounded-md transition-colors flex items-center"
+                aria-label="Open menu"
+              >
+                <FaBars className="w-5 h-5" />
+              </button>
               <span className="text-blue-100">Admin User</span>
               <button 
                 onClick={handleLogout}
@@ -802,8 +811,8 @@ export default function Admin() {
       </div>
 
       <div className="flex">
-        {/* Sidebar */}
-        <div className="w-64 bg-white shadow-lg min-h-screen relative">
+        {/* Sidebar - Desktop */}
+        <div className="hidden md:block w-64 bg-white shadow-lg min-h-screen relative">
           <nav className="mt-8">
             <div className="px-4 space-y-2">
               <button
@@ -900,8 +909,93 @@ export default function Admin() {
           </div>
         </div>
 
+        {/* Sidebar - Mobile Drawer */}
+        {isSidebarOpen && (
+          <div className="fixed inset-0 z-50 md:hidden">
+            <div className="absolute inset-0 bg-black bg-opacity-40" onClick={() => setIsSidebarOpen(false)}></div>
+            <div className="absolute left-0 top-0 h-full w-64 bg-white shadow-xl overflow-y-auto">
+              <div className="flex items-center justify-between px-4 py-4 border-b">
+                <h2 className="text-lg font-semibold">Menu</h2>
+                <button onClick={() => setIsSidebarOpen(false)} className="text-gray-500 hover:text-gray-700">
+                  <FaTimes className="w-5 h-5" />
+                </button>
+              </div>
+              <nav className="mt-4">
+                <div className="px-4 space-y-2">
+                  <button
+                    onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }}
+                    className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                      activeTab === 'dashboard' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <FaTachometerAlt className="w-5 h-5 mr-3" />
+                    Dashboard
+                  </button>
+                  <button
+                    onClick={() => { setActiveTab('games'); setIsSidebarOpen(false); }}
+                    className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                      activeTab === 'games' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <FaGamepad className="w-5 h-5 mr-3" />
+                    Games
+                  </button>
+                  <button
+                    onClick={() => { setActiveTab('gamesControl'); setIsSidebarOpen(false); }}
+                    className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                      activeTab === 'gamesControl' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <FaGamepad className="w-5 h-5 mr-3" />
+                    Games Control
+                  </button>
+                  <button
+                    onClick={() => { setActiveTab('users'); setIsSidebarOpen(false); }}
+                    className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                      activeTab === 'users' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <FaUsers className="w-5 h-5 mr-3" />
+                    Users
+                  </button>
+                  <button
+                    onClick={() => { setActiveTab('notifications'); setIsSidebarOpen(false); }}
+                    className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                      activeTab === 'notifications' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <FaBell className="w-5 h-5 mr-3" />
+                    Notifications
+                  </button>
+                  <button
+                    onClick={() => { setActiveTab('sms'); setIsSidebarOpen(false); }}
+                    className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                      activeTab === 'sms' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <svg className="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                      <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                    </svg>
+                    SMS
+                  </button>
+                  <button
+                    onClick={() => { setActiveTab('settings'); setIsSidebarOpen(false); }}
+                    className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                      activeTab === 'settings' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <FaCog className="w-5 h-5 mr-3" />
+                    Settings
+                  </button>
+                </div>
+              </nav>
+            </div>
+          </div>
+        )}
+
         {/* Main Content */}
-        <div className="flex-1 p-8">
+        <div className="flex-1 p-4 md:p-8">
           {/* Dashboard Overview */}
           {activeTab === 'dashboard' && (
             <div className="space-y-8">
