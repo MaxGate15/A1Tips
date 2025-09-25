@@ -153,7 +153,7 @@ export default function Home() {
     };
 
     // Start animations with slight delays for staggered effect
-    setTimeout(() => animateCounter(setWinRate, 85), 500);
+    setTimeout(() => animateCounter(setWinRate, 95), 500);
     setTimeout(() => animateCounter(setUserCount, 10000), 800);
     setTimeout(() => animateCounter(setUserRating, 5), 1100);
   }, []);
