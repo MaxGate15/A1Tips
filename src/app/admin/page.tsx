@@ -790,7 +790,6 @@ export default function Admin() {
               >
                 <FaBars className="w-5 h-5" />
               </button>
-              <span className="text-xs md:text-sm text-blue-100">Admin User</span>
               <button 
                 onClick={handleLogout}
                 className="bg-red-600 hover:bg-red-700 text-white px-2 md:px-4 py-1 md:py-2 rounded-md transition-colors flex items-center text-xs md:text-sm"
@@ -1860,31 +1859,28 @@ export default function Admin() {
               
               {/* Current Admins Table */}
               <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-                <div className="px-4 md:px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-base md:text-lg font-semibold text-gray-900">Current Admins</h3>
+                <div className="px-4 md:px-6 py-4 border-b border-gray-200 bg-blue-50">
+                  <h3 className="text-base md:text-lg font-semibold text-blue-900">Current Admins</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-blue-50">
                       <tr>
-                        <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
                           ADMIN
                         </th>
-                        <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
                           ROLE
                         </th>
-                        <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
                           LAST ACTIVE
                         </th>
-                        <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
                           STATUS
-                        </th>
-                        <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          ACTIONS
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-blue-25 divide-y divide-gray-200">
                       {admins.map((admin) => (
                         <tr key={admin.id}>
                           <td className="px-3 md:px-6 py-4 whitespace-nowrap">
@@ -1934,20 +1930,6 @@ export default function Admin() {
                             >
                               {admin.status}
                             </button>
-                          </td>
-                          <td className="px-3 md:px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex items-center space-x-1 md:space-x-2">
-                              <button className="text-blue-600 hover:text-blue-900 p-1">
-                                <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                </svg>
-                              </button>
-                              <button className="text-red-600 hover:text-red-900 p-1">
-                                <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
-                              </button>
-                            </div>
                           </td>
                         </tr>
                       ))}
