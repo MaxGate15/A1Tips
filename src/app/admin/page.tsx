@@ -1002,18 +1002,18 @@ export default function Admin() {
               <h2 className="text-2xl font-bold text-gray-900">Dashboard Overview</h2>
               
               {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {stats.map((stat, index) => (
-                  <div key={index} className="bg-white rounded-lg shadow-sm border p-6">
+                  <div key={index} className="bg-white rounded-lg shadow-sm border p-4 md:p-6">
                     <div className="flex items-center">
-                      <div className={`p-3 rounded-full ${stat.bgColor}`}>
-                        <stat.icon className={`h-8 w-8 ${stat.color}`} />
+                      <div className={`p-2 md:p-3 rounded-full ${stat.bgColor}`}>
+                        <stat.icon className={`h-6 w-6 md:h-8 md:w-8 ${stat.color}`} />
                       </div>
-                      <div className="ml-4">
-                        <div className={`text-3xl font-bold ${stat.color}`}>
+                      <div className="ml-3 md:ml-4">
+                        <div className={`text-2xl md:text-3xl font-bold ${stat.color}`}>
                           {stat.value}
                         </div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-xs md:text-sm text-gray-600">
                           {stat.title}
                         </div>
                       </div>
@@ -1024,14 +1024,14 @@ export default function Admin() {
 
               {/* Recent Activity */}
               <div className="bg-white rounded-lg shadow-sm border">
-                <div className="px-6 py-4 border-b">
+                <div className="px-4 md:px-6 py-4 border-b">
                   <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
                 </div>
                 <div className="divide-y">
                   {recentActivity.map((activity, index) => (
-                    <div key={index} className="px-6 py-4 flex justify-between items-center">
-                      <span className="text-gray-700">{activity.action}</span>
-                      <span className="text-sm text-gray-500">{activity.time}</span>
+                    <div key={index} className="px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                      <span className="text-sm md:text-base text-gray-700">{activity.action}</span>
+                      <span className="text-xs md:text-sm text-gray-500">{activity.time}</span>
                     </div>
                   ))}
                 </div>
@@ -1045,14 +1045,14 @@ export default function Admin() {
               <h2 className="text-2xl font-bold text-gray-900">Games Management</h2>
               
               {/* Filter Games by Category */}
-              <div className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="bg-white rounded-lg shadow-sm border p-4 md:p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Filter Games by Category</h3>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2 md:gap-3">
                   <button 
                     onClick={() => {
                       setSelectedCategory('Slips');
                     }}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`px-3 md:px-4 py-2 rounded-md text-xs md:text-sm font-medium transition-colors ${
                       selectedCategory === 'Slips' 
                         ? 'bg-blue-600 text-white' 
                         : 'bg-gray-800 text-white hover:bg-gray-900'
@@ -1062,7 +1062,7 @@ export default function Admin() {
                   </button>
                   <button 
                     onClick={() => setSelectedCategory('Free')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`px-3 md:px-4 py-2 rounded-md text-xs md:text-sm font-medium transition-colors ${
                       selectedCategory === 'Free' 
                         ? 'bg-blue-600 text-white' 
                         : 'bg-gray-800 text-white hover:bg-gray-900'
@@ -1072,7 +1072,7 @@ export default function Admin() {
                   </button>
                   <button 
                     onClick={() => setSelectedCategory('VIP1')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`px-3 md:px-4 py-2 rounded-md text-xs md:text-sm font-medium transition-colors ${
                       selectedCategory === 'VIP1' 
                         ? 'bg-blue-600 text-white' 
                         : 'bg-gray-800 text-white hover:bg-gray-900'
@@ -1082,7 +1082,7 @@ export default function Admin() {
                   </button>
                   <button 
                     onClick={() => setSelectedCategory('VIP2')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`px-3 md:px-4 py-2 rounded-md text-xs md:text-sm font-medium transition-colors ${
                       selectedCategory === 'VIP2' 
                         ? 'bg-blue-600 text-white' 
                         : 'bg-gray-800 text-white hover:bg-gray-900'
@@ -1092,7 +1092,7 @@ export default function Admin() {
                   </button>
                   <button 
                     onClick={() => setSelectedCategory('VIP3')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`px-3 md:px-4 py-2 rounded-md text-xs md:text-sm font-medium transition-colors ${
                       selectedCategory === 'VIP3' 
                         ? 'bg-blue-600 text-white' 
                         : 'bg-gray-800 text-white hover:bg-gray-900'
@@ -1555,11 +1555,11 @@ export default function Admin() {
               <h2 className="text-2xl font-bold text-gray-900">VIP Games Control</h2>
               
               {/* VIP Plan Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 {vipPlans.map((plan) => (
-                  <div key={plan.id} className="bg-white rounded-lg border border-gray-200 p-6">
+                  <div key={plan.id} className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
                     <div className="text-center">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">{plan.name}</h3>
+                      <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">{plan.name}</h3>
                       
                       {/* Status Badge */}
                       <div className="mb-4">
@@ -1596,9 +1596,10 @@ export default function Admin() {
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
               
-              {/* User Table */}
+              {/* User Table - Mobile Responsive */}
               <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-                <div className="overflow-x-auto">
+                {/* Desktop Table */}
+                <div className="hidden md:block overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
@@ -1692,6 +1693,72 @@ export default function Admin() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Mobile Cards */}
+                <div className="md:hidden">
+                  {isLoadingUsers ? (
+                    <div className="p-6 text-center text-gray-500">
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mr-3"></div>
+                        Loading users...
+                      </div>
+                    </div>
+                  ) : users.length === 0 ? (
+                    <div className="p-6 text-center text-gray-500">
+                      No users found
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-200">
+                      {users.map((user) => (
+                        <div key={user.id} className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-10 w-10">
+                                <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
+                                  <span className="text-sm font-medium text-white">
+                                    {getInitials(user.username)}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="ml-3">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {user.username}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {user.email}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {user.phone}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end space-y-2">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                user.status === 'active' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {user.status}
+                              </span>
+                              <div className="flex items-center space-x-2">
+                                <button className="text-blue-600 hover:text-blue-900 p-1" title="Edit user">
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                  </svg>
+                                </button>
+                                <button className="text-red-600 hover:text-red-900 p-1" title="Delete user">
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -1708,11 +1775,11 @@ export default function Admin() {
               <h2 className="text-2xl font-bold text-gray-900">SMS Broadcasting</h2>
               
               {/* Send SMS Card */}
-              <div className="bg-white rounded-lg shadow-sm border p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Send SMS</h3>
+              <div className="bg-white rounded-lg shadow-sm border p-4 md:p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 md:mb-6">Send SMS</h3>
                 
                 {/* Recipients Section */}
-                <div className="mb-6">
+                <div className="mb-4 md:mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-3">
                     Recipients
                   </label>
@@ -1747,7 +1814,7 @@ export default function Admin() {
                 </div>
 
                 {/* Message Section */}
-                <div className="mb-6">
+                <div className="mb-4 md:mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-3">
                     Message
                   </label>
@@ -1755,8 +1822,8 @@ export default function Admin() {
                     value={smsMessage}
                     onChange={(e) => setSmsMessage(e.target.value)}
                     placeholder="Type your message here..."
-                    rows={6}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y text-sm md:text-base"
                   />
                 </div>
 
@@ -1792,26 +1859,26 @@ export default function Admin() {
               
               {/* Current Admins Table */}
               <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200">
+                <div className="px-4 md:px-6 py-4 border-b border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900">Current Admins</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           ADMIN
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           ROLE
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           LAST ACTIVE
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           STATUS
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           ACTIONS
                         </th>
                       </tr>
@@ -1819,26 +1886,26 @@ export default function Admin() {
                     <tbody className="bg-white divide-y divide-gray-200">
                       {admins.map((admin) => (
                         <tr key={admin.id}>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-3 md:px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
-                              <div className="flex-shrink-0 h-10 w-10">
-                                <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
-                                  <span className="text-sm font-medium text-white">
+                              <div className="flex-shrink-0 h-8 w-8 md:h-10 md:w-10">
+                                <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-blue-600 flex items-center justify-center">
+                                  <span className="text-xs md:text-sm font-medium text-white">
                                     {getInitials(admin.username)}
                                   </span>
                                 </div>
                               </div>
-                              <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900">
+                              <div className="ml-3 md:ml-4">
+                                <div className="text-xs md:text-sm font-medium text-gray-900">
                                   {admin.username}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-xs text-gray-500">
                                   {admin.email}
                                 </div>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-3 md:px-6 py-4 whitespace-nowrap">
                             <select
                               value={admin.role}
                               onChange={(e) => handleChangeAdminRole(admin.id, e.target.value)}
@@ -1852,10 +1919,10 @@ export default function Admin() {
                               <option value="full">Full Access</option>
                             </select>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {admin.createdDate}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-3 md:px-6 py-4 whitespace-nowrap">
                             <button
                               onClick={() => handleToggleAdminStatus(admin.id)}
                               className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full cursor-pointer transition-colors ${
@@ -1867,15 +1934,15 @@ export default function Admin() {
                               {admin.status}
                             </button>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex items-center space-x-2">
+                          <td className="px-3 md:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex items-center space-x-1 md:space-x-2">
                               <button className="text-blue-600 hover:text-blue-900 p-1">
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
                                   <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                 </svg>
                               </button>
                               <button className="text-red-600 hover:text-red-900 p-1">
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                                 </svg>
                               </button>
