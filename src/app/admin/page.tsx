@@ -584,7 +584,7 @@ export default function Admin() {
         
         console.log('Updated slips:', updatedSlips);
         return {
-          ...prev,
+        ...prev,
           Slips: updatedSlips
         };
       });
@@ -1856,7 +1856,7 @@ export default function Admin() {
 
           {activeTab === 'settings' && (
             <div className="space-y-4 md:space-y-6">
-                <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center">
                 <h2 className="text-lg md:text-2xl font-bold text-gray-900">Settings & Admin Management</h2>
                 <button 
                   onClick={() => setShowAddAdminModal(true)}
