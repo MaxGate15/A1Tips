@@ -246,9 +246,9 @@ export default function Admin() {
         console.log('Fetched existing slips data:', bookingsData);
         
         // Transform API response to match current UI format
-        const transformedSlips = bookingsData.map((booking) => {
-          return booking.games.map((game) => ({
-            id: game.id,
+        const transformedSlips = bookingsData.map((booking, bookingIndex) => {
+          return booking.games.map((game, gameIndex) => ({
+            id: `slip_${bookingIndex}_${gameIndex}_${Date.now()}`, // Unique ID for each game
             match: `${game.home_team} vs ${game.away_team}`,
             type: game.prediction,
             odds: game.odds,
@@ -355,7 +355,7 @@ export default function Admin() {
       
       // Transform the API response games to match the expected format
       const formattedGames = data.games.map((game, index) => ({
-        id: index + 1,
+        id: `${selectedCategory}_${Date.now()}_${index}`, // Unique ID with category, timestamp, and index
         match: `${game.home} vs ${game.away}`,
         type: game.prediction,
         odds: game.odd
@@ -566,15 +566,28 @@ export default function Admin() {
 
   const handleSaveResult = (result) => {
     if (result && editingGame) {
+      console.log('Updating game result:', { 
+        editingGameId: editingGame.id, 
+        result: result,
+        allSlipsCount: loadedGames.Slips.length 
+      });
+      
       // Update the game result in Slips
-      setLoadedGames(prev => ({
-        ...prev,
-        Slips: prev.Slips.map(game => 
-          game.id === editingGame.id 
-            ? { ...game, result: result, status: 'Completed' }
-            : game
-        )
-      }));
+      setLoadedGames(prev => {
+        const updatedSlips = prev.Slips.map(game => {
+          if (game.id === editingGame.id) {
+            console.log('Found matching game to update:', game.id);
+            return { ...game, result: result, status: 'Completed' };
+          }
+          return game;
+        });
+        
+        console.log('Updated slips:', updatedSlips);
+        return {
+          ...prev,
+          Slips: updatedSlips
+        };
+      });
       
       console.log('Game result saved:', { game: editingGame, result: result });
       setShowEditModal(false);
