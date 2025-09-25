@@ -569,65 +569,30 @@ export default function Admin() {
       console.log('Updating game result:', { 
         editingGameId: editingGame.id, 
         result: result,
-        bookingId: editingGame.booking_id
+        allSlipsCount: loadedGames.Slips.length 
       });
       
-      try {
-        // Send update to backend if we have a booking_id
-        if (editingGame.booking_id) {
-          const updateData = {
-            games: [
-              {
-                game_id: editingGame.id,
-                status: result
-              }
-            ]
-          };
-
-          console.log('Sending update to backend:', updateData);
-          
-          const response = await fetch(`https://coral-app-l62hg.ondigitalocean.app/games/update-games-status/${editingGame.booking_id}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(updateData),
-          });
-
-          if (!response.ok) {
-            throw new Error(`Failed to update game status: ${response.statusText}`);
+      // Update the game result in Slips
+      setLoadedGames(prev => {
+        const updatedSlips = prev.Slips.map(game => {
+          if (game.id === editingGame.id) {
+            console.log('Found matching game to update:', game.id);
+            return { ...game, result: result, status: 'Completed' };
           }
-
-          const responseData = await response.json();
-          console.log('Backend update successful:', responseData);
-        }
-
-        // Update local state
-        setLoadedGames(prev => {
-          const updatedSlips = prev.Slips.map(game => {
-            if (game.id === editingGame.id) {
-              console.log('Found matching game to update:', game.id);
-              return { ...game, match_status: result };
-            }
-            return game;
-          });
-          
-          console.log('Updated slips:', updatedSlips);
-          return {
-            ...prev,
-            Slips: updatedSlips
-          };
+          return game;
         });
         
-        console.log('Game result saved:', { game: editingGame, result: result });
-        setShowEditModal(false);
-        setEditingGame(null);
-        setGameResult('');
-
-      } catch (error) {
-        console.error('Error updating game status:', error);
-        alert(`Failed to update game status: ${error.message}. Please try again.`);
-      }
+        console.log('Updated slips:', updatedSlips);
+        return {
+          ...prev,
+          Slips: updatedSlips
+        };
+      });
+      
+      console.log('Game result saved:', { game: editingGame, result: result });
+      setShowEditModal(false);
+      setEditingGame(null);
+      setGameResult('');
     }
   };
 
@@ -1891,7 +1856,7 @@ export default function Admin() {
 
           {activeTab === 'settings' && (
             <div className="space-y-4 md:space-y-6">
-                <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center">
                 <h2 className="text-lg md:text-2xl font-bold text-gray-900">Settings & Admin Management</h2>
                 <button 
                   onClick={() => setShowAddAdminModal(true)}
