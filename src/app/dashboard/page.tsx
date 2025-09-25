@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaChartLine, FaTrophy, FaUsers, FaDollarSign, FaCalendarAlt, FaFire } from 'react-icons/fa';
+import { FaChartLine, FaTrophy, FaUsers, FaDollarSign, FaCalendarAlt, FaFire, FaCopy, FaCheck } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [expandedPackages, setExpandedPackages] = useState<number[]>([]);
   const [isWelcomeVisible, setIsWelcomeVisible] = useState(false);
   const [isSubtitleVisible, setIsSubtitleVisible] = useState(false);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -63,6 +64,41 @@ export default function Dashboard() {
         ? prev.filter(id => id !== packageId)
         : [...prev, packageId]
     );
+  };
+
+  const copyToClipboard = async (text: string, codeType: string) => {
+    try {
+      // Try modern clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        setCopiedCode(codeType);
+        setTimeout(() => setCopiedCode(null), 2000); // Reset after 2 seconds
+        return;
+      }
+      
+      // Fallback for older browsers or non-secure contexts
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (successful) {
+        setCopiedCode(codeType);
+        setTimeout(() => setCopiedCode(null), 2000);
+      } else {
+        alert('Failed to copy code. Please select and copy manually: ' + text);
+      }
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+      alert('Failed to copy code. Please select and copy manually: ' + text);
+    }
   };
 
   const stats = [
@@ -375,20 +411,40 @@ export default function Dashboard() {
                                 <span className="text-xs font-medium text-blue-700 w-16">Sporty:</span>
                                 <span className="text-xs font-mono text-blue-900 bg-blue-100 px-2 py-1 rounded">BCTDGJ</span>
                                 <button 
-                                  onClick={() => navigator.clipboard.writeText('BCTDGJ')}
-                                  className="ml-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                                  onClick={() => copyToClipboard('BCTDGJ', 'sporty')}
+                                  className="ml-2 flex items-center text-xs text-blue-600 hover:text-blue-800 transition-colors"
                                 >
-                                  Copy
+                                  {copiedCode === 'sporty' ? (
+                                    <>
+                                      <FaCheck className="w-3 h-3 mr-1 text-green-600" />
+                                      <span className="text-green-600">Copied!</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <FaCopy className="w-3 h-3 mr-1" />
+                                      <span>Copy</span>
+                                    </>
+                                  )}
                                 </button>
                               </div>
                               <div className="flex items-center">
                                 <span className="text-xs font-medium text-blue-700 w-16">Msport:</span>
                                 <span className="text-xs font-mono text-blue-900 bg-blue-100 px-2 py-1 rounded">GDITBB</span>
                                 <button 
-                                  onClick={() => navigator.clipboard.writeText('GDITBB')}
-                                  className="ml-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                                  onClick={() => copyToClipboard('GDITBB', 'msport')}
+                                  className="ml-2 flex items-center text-xs text-blue-600 hover:text-blue-800 transition-colors"
                                 >
-                                  Copy
+                                  {copiedCode === 'msport' ? (
+                                    <>
+                                      <FaCheck className="w-3 h-3 mr-1 text-green-600" />
+                                      <span className="text-green-600">Copied!</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <FaCopy className="w-3 h-3 mr-1" />
+                                      <span>Copy</span>
+                                    </>
+                                  )}
                                 </button>
                               </div>
                             </div>
@@ -486,20 +542,40 @@ export default function Dashboard() {
                                 <span className="text-sm font-medium text-blue-700 w-20">Sporty:</span>
                                 <span className="text-sm font-mono text-blue-900 bg-blue-100 px-3 py-1 rounded">BCTDGJ</span>
                                 <button 
-                                  onClick={() => navigator.clipboard.writeText('BCTDGJ')}
-                                  className="ml-3 text-sm text-blue-600 hover:text-blue-800 underline"
+                                  onClick={() => copyToClipboard('BCTDGJ', 'sporty')}
+                                  className="ml-3 flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
                                 >
-                                  Copy
+                                  {copiedCode === 'sporty' ? (
+                                    <>
+                                      <FaCheck className="w-3 h-3 mr-1 text-green-600" />
+                                      <span className="text-green-600">Copied!</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <FaCopy className="w-3 h-3 mr-1" />
+                                      <span>Copy</span>
+                                    </>
+                                  )}
                                 </button>
                               </div>
                               <div className="flex items-center">
                                 <span className="text-sm font-medium text-blue-700 w-20">Msport:</span>
                                 <span className="text-sm font-mono text-blue-900 bg-blue-100 px-3 py-1 rounded">GDITBB</span>
                                 <button 
-                                  onClick={() => navigator.clipboard.writeText('GDITBB')}
-                                  className="ml-3 text-sm text-blue-600 hover:text-blue-800 underline"
+                                  onClick={() => copyToClipboard('GDITBB', 'msport')}
+                                  className="ml-3 flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
                                 >
-                                  Copy
+                                  {copiedCode === 'msport' ? (
+                                    <>
+                                      <FaCheck className="w-3 h-3 mr-1 text-green-600" />
+                                      <span className="text-green-600">Copied!</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <FaCopy className="w-3 h-3 mr-1" />
+                                      <span>Copy</span>
+                                    </>
+                                  )}
                                 </button>
                               </div>
                             </div>
