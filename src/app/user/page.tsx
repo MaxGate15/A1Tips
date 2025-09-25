@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { FaUser, FaEdit, FaCrown, FaTrophy, FaChartLine, FaCog, FaBell } from 'react-icons/fa';
+import { FaUser, FaEdit, FaCrown, FaTrophy, FaChartLine, FaCog, FaBell, FaCopy, FaCheck } from 'react-icons/fa';
 
 export default function User() {
   const [activeTab, setActiveTab] = useState('profile');
+  const [copiedCodes, setCopiedCodes] = useState({});
 
   const user = {
     name: 'John Doe',
@@ -30,6 +31,52 @@ export default function User() {
     { action: 'Won bet on Lakers vs Warriors', amount: '+$56.25', time: '1 day ago', type: 'win' },
     { action: 'Upgraded to Premium VIP', amount: '$59', time: '3 days ago', type: 'upgrade' },
   ];
+
+  const purchasedGames = [
+    {
+      id: 1,
+      packageName: 'VIP 1',
+      gameCount: 4,
+      price: 'GHS 20',
+      status: 'Active',
+      purchaseDate: '2024-01-15',
+      sportyCode: 'SP123456',
+      msportCode: 'MS789012',
+      games: [
+        { match: 'Olympiacos vs Pafos FC', prediction: 'Home Win', odds: '1.45', status: 'pending' },
+        { match: 'Ajax vs Inter', prediction: 'Over 2.5 Goals', odds: '1.78', status: 'pending' },
+        { match: 'Bayern Munich vs Chelsea', prediction: 'BTTS - Yes', odds: '1.65', status: 'pending' },
+        { match: 'Liverpool vs Atletico Madrid', prediction: 'Away Win', odds: '2.10', status: 'pending' }
+      ]
+    },
+    {
+      id: 2,
+      packageName: 'VIP 2',
+      gameCount: 3,
+      price: 'GHS 35',
+      status: 'Active',
+      purchaseDate: '2024-01-14',
+      sportyCode: 'SP654321',
+      msportCode: 'MS210987',
+      games: [
+        { match: 'Real Madrid vs PSG', prediction: 'Home Win', odds: '1.85', status: 'won' },
+        { match: 'Arsenal vs Man City', prediction: 'Over 3.5 Goals', odds: '2.20', status: 'lost' },
+        { match: 'Juventus vs AC Milan', prediction: 'BTTS - Yes', odds: '1.90', status: 'pending' }
+      ]
+    }
+  ];
+
+  const copyToClipboard = async (text, codeId) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedCodes(prev => ({ ...prev, [codeId]: true }));
+      setTimeout(() => {
+        setCopiedCodes(prev => ({ ...prev, [codeId]: false }));
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -69,6 +116,7 @@ export default function User() {
           <nav className="flex space-x-8 border-b border-gray-200">
             {[
               { id: 'profile', name: 'Profile', icon: FaUser },
+              { id: 'purchased', name: 'Purchased Games', icon: FaTrophy },
               { id: 'stats', name: 'Statistics', icon: FaChartLine },
               { id: 'activity', name: 'Activity', icon: FaBell },
               { id: 'settings', name: 'Settings', icon: FaCog },
@@ -180,6 +228,94 @@ export default function User() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Purchased Games Tab */}
+        {activeTab === 'purchased' && (
+          <div className="space-y-6">
+            <div className="bg-white shadow rounded-lg p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-6">Your Purchased Games</h3>
+              
+              {purchasedGames.map((packageItem) => (
+                <div key={packageItem.id} className="mb-8 p-6 bg-gray-50 rounded-lg border">
+                  {/* Package Header */}
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900">
+                        {packageItem.packageName} ({packageItem.gameCount} games)
+                      </h4>
+                      <p className="text-sm text-gray-600">Purchased: {packageItem.purchaseDate}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-green-600">{packageItem.price}</div>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        {packageItem.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Booking Codes Section */}
+                  <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h5 className="text-sm font-semibold text-blue-900 mb-2">Booking Codes:</h5>
+                    <div className="flex flex-wrap gap-4">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-blue-700 font-medium">SportyBet:</span>
+                        <span className="text-sm font-mono bg-white px-2 py-1 rounded border">{packageItem.sportyCode}</span>
+                        <button
+                          onClick={() => copyToClipboard(packageItem.sportyCode, `sporty_${packageItem.id}`)}
+                          className="text-blue-600 hover:text-blue-800 transition-colors"
+                        >
+                          {copiedCodes[`sporty_${packageItem.id}`] ? (
+                            <FaCheck className="w-4 h-4" />
+                          ) : (
+                            <FaCopy className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-blue-700 font-medium">MSport:</span>
+                        <span className="text-sm font-mono bg-white px-2 py-1 rounded border">{packageItem.msportCode}</span>
+                        <button
+                          onClick={() => copyToClipboard(packageItem.msportCode, `msport_${packageItem.id}`)}
+                          className="text-blue-600 hover:text-blue-800 transition-colors"
+                        >
+                          {copiedCodes[`msport_${packageItem.id}`] ? (
+                            <FaCheck className="w-4 h-4" />
+                          ) : (
+                            <FaCopy className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Games List */}
+                  <div>
+                    <h5 className="text-sm font-semibold text-gray-900 mb-3">Full Details:</h5>
+                    <div className="space-y-3">
+                      {packageItem.games.map((game, gameIndex) => (
+                        <div key={gameIndex} className="flex justify-between items-center p-3 bg-white rounded border">
+                          <div className="flex-1">
+                            <div className="font-medium text-gray-900">{game.match}</div>
+                            <div className="text-sm text-gray-600">{game.prediction}</div>
+                            <div className="text-sm text-gray-500">Odds: {game.odds}</div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className={`w-3 h-3 rounded-full ${
+                              game.status === 'won' ? 'bg-green-500' :
+                              game.status === 'lost' ? 'bg-red-500' :
+                              'bg-yellow-500'
+                            }`}></div>
+                            <span className="text-xs text-gray-500 capitalize">{game.status}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
