@@ -140,22 +140,22 @@ export default function Predictions() {
       }
     }, [dateFilter, fetchMatchesForDate]);
 
-  // Redirect to login if not authenticated
+  // Redirect to home if not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push('/login');
+      router.push('/');
     }
   }, [isAuthenticated, isLoading, router]);
 
   // Listen for authentication changes (when user logs out)
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      // If user data is removed or admin flag is cleared, redirect to login
+      // If user data is removed or admin flag is cleared, redirect to home
       if (e.key === 'user' && !e.newValue) {
-        router.push('/login');
+        router.push('/');
       }
       if (e.key === 'is_admin' && !e.newValue) {
-        router.push('/login');
+        router.push('/');
       }
     };
 
@@ -168,7 +168,7 @@ export default function Predictions() {
       const isAdminLoggedIn = localStorage.getItem('is_admin') === '1';
       
       if (!userData && !isAdminLoggedIn && !isLoading) {
-        router.push('/login');
+        router.push('/');
       }
     }, 1000);
 

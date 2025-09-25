@@ -134,6 +134,8 @@ export default function Navbar() {
                             localStorage.removeItem('adminUser');
                           } catch {}
                           logout();
+                          // Redirect to home page after logout
+                          window.location.href = '/';
                         }}
                       >
                         <FaSignOutAlt className="mr-3 h-4 w-4" />
@@ -269,6 +271,8 @@ export default function Navbar() {
                       localStorage.removeItem('adminUser');
                     } catch {}
                     logout();
+                    // Redirect to home page after logout
+                    window.location.href = '/';
                   }}
                 >
                   Sign Out
