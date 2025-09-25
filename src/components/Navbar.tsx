@@ -11,6 +11,7 @@ export default function Navbar() {
   const [isAdmin, setIsAdmin] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { isAuthenticated, logout, user } = useAuth();
+  const showAuthedUI = isAuthenticated || isAdmin;
 
   // Check admin status from localStorage
   useEffect(() => {
@@ -84,7 +85,7 @@ export default function Navbar() {
           </div>
 
           {/* Right side - Notifications and Profile (only for authenticated users) */}
-          {isAuthenticated && (
+          {showAuthedUI && (
             <div className="hidden md:block">
               <div className="ml-4 flex items-center md:ml-6">
                 <button className="bg-gray-200 hover:bg-gray-300 p-2 rounded-full text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
@@ -122,6 +123,16 @@ export default function Navbar() {
                         className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                         onClick={() => {
                           setIsProfileDropdownOpen(false);
+                          // Clear any admin-related flags as well
+                          try {
+                            localStorage.removeItem('access_token');
+                            localStorage.removeItem('username');
+                            localStorage.removeItem('email');
+                            localStorage.removeItem('is_admin');
+                            localStorage.removeItem('token_type');
+                            localStorage.removeItem('adminLoggedIn');
+                            localStorage.removeItem('adminUser');
+                          } catch {}
                           logout();
                         }}
                       >
@@ -136,7 +147,7 @@ export default function Navbar() {
           )}
 
           {/* Login/Register buttons for non-authenticated users */}
-          {!isAuthenticated && (
+          {!showAuthedUI && (
             <div className="hidden md:block">
               <div className="ml-4 flex items-center md:ml-6 space-x-3">
                 <Link
@@ -209,7 +220,7 @@ export default function Navbar() {
             )}
             
             {/* Mobile authentication options */}
-            {!isAuthenticated ? (
+            {!showAuthedUI ? (
               <>
                 <hr className="my-2 border-gray-300" />
                 <Link
@@ -248,6 +259,15 @@ export default function Navbar() {
                   className="text-red-600 hover:bg-red-50 w-full text-left block px-3 py-2 rounded-md text-base font-medium"
                   onClick={() => {
                     setIsMenuOpen(false);
+                    try {
+                      localStorage.removeItem('access_token');
+                      localStorage.removeItem('username');
+                      localStorage.removeItem('email');
+                      localStorage.removeItem('is_admin');
+                      localStorage.removeItem('token_type');
+                      localStorage.removeItem('adminLoggedIn');
+                      localStorage.removeItem('adminUser');
+                    } catch {}
                     logout();
                   }}
                 >
