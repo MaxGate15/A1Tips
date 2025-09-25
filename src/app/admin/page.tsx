@@ -246,9 +246,9 @@ export default function Admin() {
         console.log('Fetched existing slips data:', bookingsData);
         
         // Transform API response to match current UI format
-        const transformedSlips = bookingsData.map((booking, bookingIndex) => {
-          return booking.games.map((game, gameIndex) => ({
-            id: `slip_${bookingIndex}_${gameIndex}_${Date.now()}`, // Unique ID for each game
+        const transformedSlips = bookingsData.map((booking) => {
+          return booking.games.map((game) => ({
+            id: game.id, // Use the actual game ID from backend
             match: `${game.home_team} vs ${game.away_team}`,
             type: game.prediction,
             odds: game.odds,
@@ -257,8 +257,8 @@ export default function Admin() {
             uploadDate: booking.booking.deadline,
             sportyCode: booking.booking.share_code,
             msportCode: booking.booking.share_code, // Use same code as fallback
-            result: game.match_status === 'pending' ? undefined : game.match_status,
-            status: game.match_status === 'pending' ? 'Pending' : 'Completed'
+            match_status: game.match_status || 'Pending',
+            booking_id: booking.booking.id // Store booking ID for backend updates
           }));
         }).flat(); // Flatten array of arrays into single array
         
@@ -558,41 +558,76 @@ export default function Admin() {
     }
   };
 
-  const handleEditGame = (game) => {
+  const handleEditGame = (game, slipId = null) => {
     setEditingGame(game);
-    setGameResult(game.result || '');       
+    setGameResult(game.match_status || 'Pending');       
     setShowEditModal(true);
   };
 
-  const handleSaveResult = (result) => {
+  const handleSaveResult = async (result) => {
     if (result && editingGame) {
       console.log('Updating game result:', { 
         editingGameId: editingGame.id, 
         result: result,
-        allSlipsCount: loadedGames.Slips.length 
+        bookingId: editingGame.booking_id
       });
       
-      // Update the game result in Slips
-      setLoadedGames(prev => {
-        const updatedSlips = prev.Slips.map(game => {
-          if (game.id === editingGame.id) {
-            console.log('Found matching game to update:', game.id);
-            return { ...game, result: result, status: 'Completed' };
+      try {
+        // Send update to backend if we have a booking_id
+        if (editingGame.booking_id) {
+          const updateData = {
+            games: [
+              {
+                game_id: editingGame.id,
+                status: result
+              }
+            ]
+          };
+
+          console.log('Sending update to backend:', updateData);
+          
+          const response = await fetch(`https://coral-app-l62hg.ondigitalocean.app/games/update-games-status/${editingGame.booking_id}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updateData),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to update game status: ${response.statusText}`);
           }
-          return game;
+
+          const responseData = await response.json();
+          console.log('Backend update successful:', responseData);
+        }
+
+        // Update local state
+        setLoadedGames(prev => {
+          const updatedSlips = prev.Slips.map(game => {
+            if (game.id === editingGame.id) {
+              console.log('Found matching game to update:', game.id);
+              return { ...game, match_status: result };
+            }
+            return game;
+          });
+          
+          console.log('Updated slips:', updatedSlips);
+          return {
+            ...prev,
+            Slips: updatedSlips
+          };
         });
         
-        console.log('Updated slips:', updatedSlips);
-        return {
-          ...prev,
-          Slips: updatedSlips
-        };
-      });
-      
-      console.log('Game result saved:', { game: editingGame, result: result });
-      setShowEditModal(false);
-      setEditingGame(null);
-      setGameResult('');
+        console.log('Game result saved:', { game: editingGame, result: result });
+        setShowEditModal(false);
+        setEditingGame(null);
+        setGameResult('');
+
+      } catch (error) {
+        console.error('Error updating game status:', error);
+        alert(`Failed to update game status: ${error.message}. Please try again.`);
+      }
     }
   };
 
@@ -1249,7 +1284,7 @@ export default function Admin() {
                             {/* Individual Games */}
                             {expandedSlips.includes(slip.id) && (
                               <div className="space-y-2">
-                                {slip.games.map((game, index) => (
+                                {slip.games.map((game) => (
                                   <div key={game.id} className="bg-white rounded border border-gray-200 p-2">
                                     {/* Game Header */}
                                     <div className="flex items-center justify-between mb-2">
@@ -1258,28 +1293,28 @@ export default function Admin() {
                                           <div className="text-sm font-medium text-gray-900">{game.match}</div>
                                           {/* Result Status Icon */}
                                           <div className="ml-1">
-                                            {game.result === 'Won' && (
+                                            {game.match_status === 'Won' && (
                                               <div className="w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
                                                 <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
                                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                                 </svg>
                                               </div>
                                             )}
-                                            {game.result === 'Lost' && (
+                                            {game.match_status === 'Lost' && (
                                               <div className="w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
                                                 <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
                                                   <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                                                 </svg>
                                               </div>
                                             )}
-                                            {game.result === 'Pending' && (
+                                            {(game.match_status === 'Pending' || game.match_status === 'pending') && (
                                               <div className="w-3 h-3 bg-orange-500 rounded-full flex items-center justify-center">
                                                 <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
                                                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
                                                 </svg>
                                               </div>
                                             )}
-                                            {!game.result && (
+                                            {(!game.match_status || game.match_status === '') && (
                                               <div className="w-3 h-3 bg-gray-400 rounded-full flex items-center justify-center">
                                                 <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
                                                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
@@ -1297,7 +1332,7 @@ export default function Admin() {
                                       <div className="flex items-center space-x-2">
                                         <span className="text-sm font-medium text-gray-900">{game.odds}</span>
                                         <button
-                                          onClick={() => handleEditGame(game)}
+                                          onClick={() => handleEditGame(game, slip.id)}
                                           className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs"
                                         >
                                           Edit
