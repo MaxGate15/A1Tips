@@ -383,11 +383,7 @@ export default function VIP() {
                                             </span>
                                           </div>
                                         </>
-                                      ) : (
-                                        <div className="text-sm text-gray-500 italic mb-2">
-                                          {hasPendingGames(getVipPackageByCategory('VIP1')!.games) ? 'Details hidden until all games are completed' : 'Details will be available after games are completed'}
-                                        </div>
-                                      )}
+                                      ) : null}
                                     </div>
                                   ))}
                                 </div>
@@ -493,11 +489,7 @@ export default function VIP() {
                                             </span>
                                           </div>
                                         </>
-                                      ) : (
-                                        <div className="text-sm text-gray-500 italic mb-2">
-                                          {hasPendingGames(getVipPackageByCategory('VIP2')!.games) ? 'Details hidden until all games are completed' : 'Details will be available after games are completed'}
-                                        </div>
-                                      )}
+                                      ) : null}
                                     </div>
                                   ))}
                                 </div>
@@ -589,11 +581,7 @@ export default function VIP() {
                                           </span>
                                         </div>
                                       </>
-                                    ) : (
-                                      <div className="text-sm text-gray-500 italic mb-2">
-                                        {hasPendingGames(getVipPackageByCategory('VIP3')!.games) ? 'Details hidden until all games are completed' : 'Details will be available after games are completed'}
-                                      </div>
-                                    )}
+                                    ) : null}
                                   </div>
                                 ))
                               ) : (

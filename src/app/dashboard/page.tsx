@@ -412,11 +412,7 @@ export default function Dashboard() {
                                     <span className="font-medium text-gray-700">Odds:</span> {game.odds}
                                   </div>
                                 </div>
-                              ) : (
-                                <div className="text-xs text-gray-500 italic">
-                                  {hasPendingGames(purchase.games) ? 'Details hidden until all games are completed' : 'Details will be available after games are completed'}
-                                </div>
-                              )}
+                              ) : null}
                             </div>
                           ))}
                           
@@ -552,11 +548,7 @@ export default function Dashboard() {
                                     <span className="font-medium text-gray-700">Odds:</span> {game.odds}
                                   </div>
                                 </div>
-                              ) : (
-                                <div className="text-sm text-gray-500 italic">
-                                  {hasPendingGames(purchase.games) ? 'Details hidden until all games are completed' : 'Details will be available after games are completed'}
-                                </div>
-                              )}
+                              ) : null}
                             </div>
                           ))}
                           
