@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
 
 interface PaymentDropdownProps {
   packageName: string;
@@ -55,6 +56,7 @@ export default function PaymentDropdown({
   onPaymentClose
 }: PaymentDropdownProps) {
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const router = useRouter();
 
 
   const publicKey = "pk_live_86fde08e9c8e0c05ac59a162c13a370897a0828b";
@@ -93,7 +95,7 @@ export default function PaymentDropdown({
     const handler = window.PaystackPop.setup({
       key: publicKey,
       email: getEmail,
-      amount: country === 'ghana' ? Math.round(priceInGHS * 100) : Math.round(priceInUSD * 100),
+      amount: country === 'ghana' ? Math.round(priceInGHS * 1) : Math.round(priceInUSD * 1),
       currency: country === 'ghana' ? 'GHS' : 'USD',
       channels: country === 'ghana' 
         ? ['card', 'mobile_money', 'bank_transfer'] 
@@ -105,7 +107,7 @@ export default function PaymentDropdown({
       },
       callback: (response: PaystackResponse) => {
         // Verify payment with backend
-        fetch(`https://coral-app-l62hg.ondigitalocean.app/verify`, {
+        fetch(`https://coral-app-l62hg.ondigitalocean.app/payment/verify`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -126,6 +128,8 @@ export default function PaymentDropdown({
         .then(verificationResult => {
           console.log('Payment verified successfully:', verificationResult);
           onPaymentSuccess(response.reference);
+          // redirect to dashboard
+          router.push('/dashboard');
           setShowLocationModal(false);
         })
         .catch(error => {
