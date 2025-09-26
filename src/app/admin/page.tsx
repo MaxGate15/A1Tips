@@ -246,10 +246,10 @@ export default function Admin() {
         console.log('Fetched existing slips data:', bookingsData);
         
         // Transform API response to match current UI format
-        const transformedSlips = bookingsData.map((booking, bookingIndex) => {
-          return booking.games.map((game, gameIndex) => ({
-            id: `${booking.booking.id}_${game.id}_${bookingIndex}_${gameIndex}`, // Create unique ID combining booking and game
-            originalId: game.id, // Keep original ID for backend reference
+        const transformedSlips = bookingsData.map((booking) => {
+          return booking.games.map((game) => ({
+            id: game.id, // Use backend id as id
+            originalId: game.id, // Keep for reference
             match: `${game.home_team} vs ${game.away_team}`,
             type: game.prediction,
             odds: game.odds,
@@ -601,10 +601,54 @@ export default function Admin() {
         };
       });
       
-      console.log('Game result saved:', { game: editingGame, result: result });
-      setShowEditModal(false);
-      setEditingGame(null);
-      setGameResult('');
+      // Send update to backend
+      try {
+        const bookingId = editingGame.booking_id;
+        if (!bookingId) {
+          throw new Error('No booking ID found for this game');
+        }
+
+        // Get all games for this booking
+        const bookingGames = loadedGames.Slips.filter(game => game.booking_id === bookingId);
+        
+        // Create payload with all games' statuses
+        const gamesPayload = bookingGames.map(game => ({
+          id: game.id,
+          status: game.id === editingGame.id ? result : game.match_status // Use updated result for the edited game
+        }));
+
+        const payload = {
+          games: gamesPayload
+        };
+
+        console.log('Sending game status update to backend:', { bookingId, payload });
+
+        const response = await fetch(`https://coral-app-l62hg.ondigitalocean.app/games/update-games-status/${bookingId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to update game status: ${response.statusText}`);
+        }
+
+        const responseData = await response.json();
+        console.log('Backend update successful:', responseData);
+
+        // Only close modal and reset state on successful API call
+        console.log('Game result saved:', { game: editingGame, result: result });
+        setShowEditModal(false);
+        setEditingGame(null);
+        setGameResult('');
+        
+      } catch (error) {
+        console.error('Error updating game status on backend:', error);
+        alert('Failed to save game result to backend. Please try again.');
+        // Don't close modal on error - user can retry
+      }
     }
   };
 
