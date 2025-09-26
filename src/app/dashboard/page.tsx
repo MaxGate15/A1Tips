@@ -66,6 +66,16 @@ export default function Dashboard() {
     );
   };
 
+  // Security function: Check if any game in a purchase is pending
+  const hasPendingGames = (games: any[]) => {
+    return games.some(game => game.status === 'Pending' || game.status === 'pending' || !game.status);
+  };
+
+  // Security function: Check if all games are completed (won/lost)
+  const allGamesCompleted = (games: any[]) => {
+    return games.every(game => game.status === 'Won' || game.status === 'Lost' || game.status === 'won' || game.status === 'lost');
+  };
+
   const copyToClipboard = async (text: string, codeType: string) => {
     try {
       // Try modern clipboard API first
@@ -392,63 +402,72 @@ export default function Dashboard() {
                                   {game.status === 'Won' ? '✓' : game.status === 'Lost' ? '✗' : '?'}
                                 </span>
                               </div>
-                              <div className="flex gap-4 text-xs">
-                                <div>
-                                  <span className="font-medium text-gray-700">Prediction:</span> {game.prediction}
+                              {/* Only show full details if all games are completed */}
+                              {allGamesCompleted(purchase.games) ? (
+                                <div className="flex gap-4 text-xs">
+                                  <div>
+                                    <span className="font-medium text-gray-700">Prediction:</span> {game.prediction}
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-700">Odds:</span> {game.odds}
+                                  </div>
                                 </div>
-                                <div>
-                                  <span className="font-medium text-gray-700">Odds:</span> {game.odds}
+                              ) : (
+                                <div className="text-xs text-gray-500 italic">
+                                  {hasPendingGames(purchase.games) ? 'Details hidden until all games are completed' : 'Details will be available after games are completed'}
                                 </div>
-                              </div>
+                              )}
                             </div>
                           ))}
                           
-                          {/* Booking Codes Section */}
-                          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                            <h6 className="text-sm font-semibold text-blue-900 mb-2">Booking Codes:</h6>
-                            <div className="space-y-1">
-                              <div className="flex items-center">
-                                <span className="text-xs font-medium text-blue-700 w-16">Sporty:</span>
-                                <span className="text-xs font-mono text-blue-900 bg-blue-100 px-2 py-1 rounded">BCTDGJ</span>
-                                <button 
-                                  onClick={() => copyToClipboard('BCTDGJ', 'sporty')}
-                                  className="ml-2 flex items-center text-xs text-blue-600 hover:text-blue-800 transition-colors"
-                                >
-                                  {copiedCode === 'sporty' ? (
-                                    <>
-                                      <FaCheck className="w-3 h-3 mr-1 text-green-600" />
-                                      <span className="text-green-600">Copied!</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <FaCopy className="w-3 h-3 mr-1" />
-                                      <span>Copy</span>
-                                    </>
-                                  )}
-                                </button>
-                              </div>
-                              <div className="flex items-center">
-                                <span className="text-xs font-medium text-blue-700 w-16">Msport:</span>
-                                <span className="text-xs font-mono text-blue-900 bg-blue-100 px-2 py-1 rounded">GDITBB</span>
-                                <button 
-                                  onClick={() => copyToClipboard('GDITBB', 'msport')}
-                                  className="ml-2 flex items-center text-xs text-blue-600 hover:text-blue-800 transition-colors"
-                                >
-                                  {copiedCode === 'msport' ? (
-                                    <>
-                                      <FaCheck className="w-3 h-3 mr-1 text-green-600" />
-                                      <span className="text-green-600">Copied!</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <FaCopy className="w-3 h-3 mr-1" />
-                                      <span>Copy</span>
-                                    </>
-                                  )}
-                                </button>
+                          {/* Booking Codes Section - Only show if all games are completed */}
+                          {allGamesCompleted(purchase.games) && (
+                            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                              <h6 className="text-sm font-semibold text-blue-900 mb-2">Booking Codes:</h6>
+                              <div className="space-y-1">
+                                <div className="flex items-center">
+                                  <span className="text-xs font-medium text-blue-700 w-16">Sporty:</span>
+                                  <span className="text-xs font-mono text-blue-900 bg-blue-100 px-2 py-1 rounded">BCTDGJ</span>
+                                  <button 
+                                    onClick={() => copyToClipboard('BCTDGJ', 'sporty')}
+                                    className="ml-2 flex items-center text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                                  >
+                                    {copiedCode === 'sporty' ? (
+                                      <>
+                                        <FaCheck className="w-3 h-3 mr-1 text-green-600" />
+                                        <span className="text-green-600">Copied!</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <FaCopy className="w-3 h-3 mr-1" />
+                                        <span>Copy</span>
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
+                                <div className="flex items-center">
+                                  <span className="text-xs font-medium text-blue-700 w-16">Msport:</span>
+                                  <span className="text-xs font-mono text-blue-900 bg-blue-100 px-2 py-1 rounded">GDITBB</span>
+                                  <button 
+                                    onClick={() => copyToClipboard('GDITBB', 'msport')}
+                                    className="ml-2 flex items-center text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                                  >
+                                    {copiedCode === 'msport' ? (
+                                      <>
+                                        <FaCheck className="w-3 h-3 mr-1 text-green-600" />
+                                        <span className="text-green-600">Copied!</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <FaCopy className="w-3 h-3 mr-1" />
+                                        <span>Copy</span>
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
                               </div>
                             </div>
-                          </div>
+                          )}
                         </div>
                       </div>
                     )}
@@ -523,63 +542,72 @@ export default function Dashboard() {
                                   {game.status === 'Won' ? '✓' : game.status === 'Lost' ? '✗' : '?'}
                                 </span>
                               </div>
-                              <div className="flex gap-6 text-sm">
-                                <div>
-                                  <span className="font-medium text-gray-700">Prediction:</span> {game.prediction}
+                              {/* Only show full details if all games are completed */}
+                              {allGamesCompleted(purchase.games) ? (
+                                <div className="flex gap-6 text-sm">
+                                  <div>
+                                    <span className="font-medium text-gray-700">Prediction:</span> {game.prediction}
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-700">Odds:</span> {game.odds}
+                                  </div>
                                 </div>
-                                <div>
-                                  <span className="font-medium text-gray-700">Odds:</span> {game.odds}
+                              ) : (
+                                <div className="text-sm text-gray-500 italic">
+                                  {hasPendingGames(purchase.games) ? 'Details hidden until all games are completed' : 'Details will be available after games are completed'}
                                 </div>
-                              </div>
+                              )}
                             </div>
                           ))}
                           
-                          {/* Booking Codes Section */}
-                          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <h6 className="text-base font-semibold text-blue-900 mb-3">Booking Codes:</h6>
-                            <div className="space-y-2">
-                              <div className="flex items-center">
-                                <span className="text-sm font-medium text-blue-700 w-20">Sporty:</span>
-                                <span className="text-sm font-mono text-blue-900 bg-blue-100 px-3 py-1 rounded">BCTDGJ</span>
-                                <button 
-                                  onClick={() => copyToClipboard('BCTDGJ', 'sporty')}
-                                  className="ml-3 flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
-                                >
-                                  {copiedCode === 'sporty' ? (
-                                    <>
-                                      <FaCheck className="w-3 h-3 mr-1 text-green-600" />
-                                      <span className="text-green-600">Copied!</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <FaCopy className="w-3 h-3 mr-1" />
-                                      <span>Copy</span>
-                                    </>
-                                  )}
-                                </button>
-                              </div>
-                              <div className="flex items-center">
-                                <span className="text-sm font-medium text-blue-700 w-20">Msport:</span>
-                                <span className="text-sm font-mono text-blue-900 bg-blue-100 px-3 py-1 rounded">GDITBB</span>
-                                <button 
-                                  onClick={() => copyToClipboard('GDITBB', 'msport')}
-                                  className="ml-3 flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
-                                >
-                                  {copiedCode === 'msport' ? (
-                                    <>
-                                      <FaCheck className="w-3 h-3 mr-1 text-green-600" />
-                                      <span className="text-green-600">Copied!</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <FaCopy className="w-3 h-3 mr-1" />
-                                      <span>Copy</span>
-                                    </>
-                                  )}
-                                </button>
+                          {/* Booking Codes Section - Only show if all games are completed */}
+                          {allGamesCompleted(purchase.games) && (
+                            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                              <h6 className="text-base font-semibold text-blue-900 mb-3">Booking Codes:</h6>
+                              <div className="space-y-2">
+                                <div className="flex items-center">
+                                  <span className="text-sm font-medium text-blue-700 w-20">Sporty:</span>
+                                  <span className="text-sm font-mono text-blue-900 bg-blue-100 px-3 py-1 rounded">BCTDGJ</span>
+                                  <button 
+                                    onClick={() => copyToClipboard('BCTDGJ', 'sporty')}
+                                    className="ml-3 flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                                  >
+                                    {copiedCode === 'sporty' ? (
+                                      <>
+                                        <FaCheck className="w-3 h-3 mr-1 text-green-600" />
+                                        <span className="text-green-600">Copied!</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <FaCopy className="w-3 h-3 mr-1" />
+                                        <span>Copy</span>
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
+                                <div className="flex items-center">
+                                  <span className="text-sm font-medium text-blue-700 w-20">Msport:</span>
+                                  <span className="text-sm font-mono text-blue-900 bg-blue-100 px-3 py-1 rounded">GDITBB</span>
+                                  <button 
+                                    onClick={() => copyToClipboard('GDITBB', 'msport')}
+                                    className="ml-3 flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                                  >
+                                    {copiedCode === 'msport' ? (
+                                      <>
+                                        <FaCheck className="w-3 h-3 mr-1 text-green-600" />
+                                        <span className="text-green-600">Copied!</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <FaCopy className="w-3 h-3 mr-1" />
+                                        <span>Copy</span>
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
                               </div>
                             </div>
-                          </div>
+                          )}
                         </div>
                       </div>
                     )}

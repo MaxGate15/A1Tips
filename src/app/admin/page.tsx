@@ -639,10 +639,10 @@ export default function Admin() {
         console.log('Backend update successful:', responseData);
 
         // Only close modal and reset state on successful API call
-        console.log('Game result saved:', { game: editingGame, result: result });
-        setShowEditModal(false);
-        setEditingGame(null);
-        setGameResult('');
+      console.log('Game result saved:', { game: editingGame, result: result });
+      setShowEditModal(false);
+      setEditingGame(null);
+      setGameResult('');
         
       } catch (error) {
         console.error('Error updating game status on backend:', error);
@@ -683,16 +683,28 @@ export default function Admin() {
     );
   };
 
-  const handleArchiveSelectedSlips = () => {
+  const handleDeleteSelectedSlips = () => {
     if (selectedSlips.length === 0) return;
     
-    // Add selected slips to archived list
-    setArchivedSlips(prev => [...prev, ...selectedSlips]);
+    // Determine which slip groups (by uploadDate) to remove based on selected slip ids
+    const slips = groupGamesIntoSlips();
+    const selectedSlipSet = new Set(selectedSlips);
+    const datesToDelete = new Set(
+      slips
+        .filter((slip) => selectedSlipSet.has(slip.id))
+        .map((slip) => slip.uploadDate)
+    );
+
+    // Remove all games whose uploadDate belongs to a selected slip
+    setLoadedGames((prev) => ({
+      ...prev,
+      Slips: prev.Slips.filter((game) => !datesToDelete.has(game.uploadDate)),
+    }));
     
     // Clear selection
     setSelectedSlips([]);
     
-    console.log('Archived slips:', selectedSlips);
+    console.log('Deleted slips by dates:', Array.from(datesToDelete));
   };
 
   const handleSendSMS = async () => {
@@ -1260,11 +1272,11 @@ export default function Admin() {
                             Clear Selection
                           </button>
                           <button
-                            onClick={handleArchiveSelectedSlips}
+                            onClick={handleDeleteSelectedSlips}
                             disabled={selectedSlips.length === 0}
-                            className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors"
+                            className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors"
                           >
-                            Archive Selected ({selectedSlips.length})
+                            Delete Selected ({selectedSlips.length})
                           </button>
                         </div>
                       </div>
