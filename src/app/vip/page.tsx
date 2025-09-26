@@ -465,7 +465,7 @@ export default function VIP() {
                           </div>
                           {vipAvailability['VIP 1'] ? (
                             getVipPackageByCategory('VIP1') ? (
-                              getVipPackageByCategory('VIP1')!.updated ? (
+                              anyGameCompleted(getVipPackageByCategory('VIP1')!.games) ? (
                                 <div className="bg-blue-500 text-white py-3 px-4 rounded-lg font-bold text-lg">
                                   RESULTS UPLOADED
                                 </div>
@@ -622,7 +622,7 @@ export default function VIP() {
                           </div>
                           {vipAvailability['VIP 2'] ? (
                             getVipPackageByCategory('VIP2') ? (
-                              getVipPackageByCategory('VIP2')!.updated ? (
+                              anyGameCompleted(getVipPackageByCategory('VIP2')!.games) ? (
                                 <div className="bg-blue-500 text-white py-3 px-4 rounded-lg font-bold text-lg">
                                   RESULTS UPLOADED
                                 </div>
@@ -761,7 +761,7 @@ export default function VIP() {
                           {/* Show payment button if available and no results yet, otherwise show status */}
                           {vipAvailability['VIP 3'] ? (
                             getVipPackageByCategory('VIP3') ? (
-                              getVipPackageByCategory('VIP3')!.updated ? (
+                              anyGameCompleted(getVipPackageByCategory('VIP3')!.games) ? (
                                 <div className="bg-blue-500 text-white py-3 px-4 rounded-lg font-bold text-lg mt-4">
                                   RESULTS UPLOADED
                                 </div>
