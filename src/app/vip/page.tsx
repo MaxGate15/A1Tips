@@ -34,6 +34,16 @@ export default function VIP() {
   const isGameCompleted = (game: any) => {
     return game.match_status === 'Won' || game.match_status === 'Lost' || game.match_status === 'won' || game.match_status === 'lost';
   };
+
+  // Security function: Check if ALL games are pending (normal state)
+  const allGamesPending = (games: any[]) => {
+    return games.every(game => isGamePending(game));
+  };
+
+  // Security function: Check if ANY game is completed (individual security)
+  const anyGameCompleted = (games: any[]) => {
+    return games.some(game => isGameCompleted(game));
+  };
   
     // Redirect to login if not authenticated
     useEffect(() => {
@@ -354,8 +364,59 @@ export default function VIP() {
                                       <h4 className="text-gray-900 font-semibold mb-2">
                                         {game.home_team} vs {game.away_team}
                                       </h4>
-                                      {/* Only show details if game is completed (won/lost) */}
-                                      {isGameCompleted(game) ? (
+                                      {/* Show details based on overall package status */}
+                                      {allGamesPending(getVipPackageByCategory('VIP1')!.games) ? (
+                                        // Normal state: ALL games pending - show only match names
+                                        null
+                                      ) : anyGameCompleted(getVipPackageByCategory('VIP1')!.games) ? (
+                                        // Individual security: SOME games completed - show details only for completed games
+                                        isGameCompleted(game) ? (
+                                          <>
+                                            <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
+                                            <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div>
+                                            <div className="flex items-center gap-2">
+                                              <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                                                Option: {game.prediction}
+                                              </span>
+                                              <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                                                Odds: {game.odds}
+                                              </span>
+                                              <span className="ml-auto">
+                                                {game.match_status?.toLowerCase() === 'won' ? (
+                                                  <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
+                                                    <span className="text-white font-bold text-sm">✓</span>
+                                                  </div>
+                                                ) : game.match_status?.toLowerCase() === 'lost' ? (
+                                                  <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full">
+                                                    <span className="text-white font-bold text-sm">✗</span>
+                                                  </div>
+                                                ) : (
+                                                  <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full">
+                                                    <span className="text-white font-bold text-sm">?</span>
+                                                  </div>
+                                                )}
+                                              </span>
+                                            </div>
+                                          </>
+                                        ) : (
+                                          <div className="ml-auto">
+                                            {game.match_status?.toLowerCase() === 'won' ? (
+                                              <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
+                                                <span className="text-white font-bold text-sm">✓</span>
+                                              </div>
+                                            ) : game.match_status?.toLowerCase() === 'lost' ? (
+                                              <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full">
+                                                <span className="text-white font-bold text-sm">✗</span>
+                                              </div>
+                                            ) : (
+                                              <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full">
+                                                <span className="text-white font-bold text-sm">?</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )
+                                      ) : (
+                                        // Default: Show all details
                                         <>
                                           <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
                                           <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div>
@@ -383,22 +444,6 @@ export default function VIP() {
                                             </span>
                                           </div>
                                         </>
-                                      ) : (
-                                        <div className="ml-auto">
-                                          {game.match_status?.toLowerCase() === 'won' ? (
-                                            <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
-                                              <span className="text-white font-bold text-sm">✓</span>
-                                            </div>
-                                          ) : game.match_status?.toLowerCase() === 'lost' ? (
-                                            <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full">
-                                              <span className="text-white font-bold text-sm">✗</span>
-                                            </div>
-                                          ) : (
-                                            <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full">
-                                              <span className="text-white font-bold text-sm">?</span>
-                                            </div>
-                                          )}
-                                        </div>
                                       )}
                                     </div>
                                   ))}
@@ -476,8 +521,59 @@ export default function VIP() {
                                       <h4 className="text-gray-900 font-semibold mb-2">
                                         {game.home_team} vs {game.away_team}
                                       </h4>
-                                      {/* Only show details if game is completed (won/lost) */}
-                                      {isGameCompleted(game) ? (
+                                      {/* Show details based on overall package status */}
+                                      {allGamesPending(getVipPackageByCategory('VIP2')!.games) ? (
+                                        // Normal state: ALL games pending - show only match names
+                                        null
+                                      ) : anyGameCompleted(getVipPackageByCategory('VIP2')!.games) ? (
+                                        // Individual security: SOME games completed - show details only for completed games
+                                        isGameCompleted(game) ? (
+                                          <>
+                                            <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
+                                            <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div>
+                                            <div className="flex items-center gap-2">
+                                              <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                                                Option: {game.prediction}
+                                              </span>
+                                              <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                                                Odds: {game.odds}
+                                              </span>
+                                              <span className="ml-auto">
+                                                {game.match_status?.toLowerCase() === 'won' ? (
+                                                  <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
+                                                    <span className="text-white font-bold text-sm">✓</span>
+                                                  </div>
+                                                ) : game.match_status?.toLowerCase() === 'lost' ? (
+                                                  <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full">
+                                                    <span className="text-white font-bold text-sm">✗</span>
+                                                  </div>
+                                                ) : (
+                                                  <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full">
+                                                    <span className="text-white font-bold text-sm">?</span>
+                                                  </div>
+                                                )}
+                                              </span>
+                                            </div>
+                                          </>
+                                        ) : (
+                                          <div className="ml-auto">
+                                            {game.match_status?.toLowerCase() === 'won' ? (
+                                              <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
+                                                <span className="text-white font-bold text-sm">✓</span>
+                                              </div>
+                                            ) : game.match_status?.toLowerCase() === 'lost' ? (
+                                              <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full">
+                                                <span className="text-white font-bold text-sm">✗</span>
+                                              </div>
+                                            ) : (
+                                              <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full">
+                                                <span className="text-white font-bold text-sm">?</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )
+                                      ) : (
+                                        // Default: Show all details
                                         <>
                                           <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
                                           <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div>
@@ -505,22 +601,6 @@ export default function VIP() {
                                             </span>
                                           </div>
                                         </>
-                                      ) : (
-                                        <div className="ml-auto">
-                                          {game.match_status?.toLowerCase() === 'won' ? (
-                                            <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
-                                              <span className="text-white font-bold text-sm">✓</span>
-                                            </div>
-                                          ) : game.match_status?.toLowerCase() === 'lost' ? (
-                                            <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full">
-                                              <span className="text-white font-bold text-sm">✗</span>
-                                            </div>
-                                          ) : (
-                                            <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full">
-                                              <span className="text-white font-bold text-sm">?</span>
-                                            </div>
-                                          )}
-                                        </div>
                                       )}
                                     </div>
                                   ))}
@@ -588,8 +668,55 @@ export default function VIP() {
                                 getVipPackageByCategory('VIP3')!.games.map((game, index) => (
                                   <div key={index} className={`${index < getVipPackageByCategory('VIP3')!.games.length - 1 ? 'border-b border-gray-100 pb-3' : ''}`}>
                                     <h4 className="text-gray-900 font-semibold mb-2">{game.home_team} vs {game.away_team}</h4>
-                                    {/* Only show details if game is completed (won/lost) */}
-                                    {isGameCompleted(game) ? (
+                                    {/* Show details based on overall package status */}
+                                    {allGamesPending(getVipPackageByCategory('VIP3')!.games) ? (
+                                      // Normal state: ALL games pending - show only match names
+                                      null
+                                    ) : anyGameCompleted(getVipPackageByCategory('VIP3')!.games) ? (
+                                      // Individual security: SOME games completed - show details only for completed games
+                                      isGameCompleted(game) ? (
+                                        <>
+                                          <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
+                                          <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div>
+                                          <div className="flex items-center gap-2">
+                                            <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Option: {game.prediction}</span>
+                                            <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Odds: {game.odds}</span>
+                                            <span className="ml-auto">
+                                              {game.match_status === 'won' || game.match_status === 'Won' || game.match_status === 'WON' ? (
+                                                <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
+                                                  <span className="text-white font-bold text-sm">✓</span>
+                                                </div>
+                                              ) : game.match_status === 'lost' || game.match_status === 'Lost' || game.match_status === 'LOST' ? (
+                                                <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full">
+                                                  <span className="text-white font-bold text-sm">✗</span>
+                                                </div>
+                                              ) : (
+                                                <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full">
+                                                  <span className="text-white font-bold text-sm">?</span>
+                                                </div>
+                                              )}
+                                            </span>
+                                          </div>
+                                        </>
+                                      ) : (
+                                        <div className="ml-auto">
+                                          {game.match_status === 'won' || game.match_status === 'Won' || game.match_status === 'WON' ? (
+                                            <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
+                                              <span className="text-white font-bold text-sm">✓</span>
+                                            </div>
+                                          ) : game.match_status === 'lost' || game.match_status === 'Lost' || game.match_status === 'LOST' ? (
+                                            <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full">
+                                              <span className="text-white font-bold text-sm">✗</span>
+                                            </div>
+                                          ) : (
+                                            <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full">
+                                              <span className="text-white font-bold text-sm">?</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      )
+                                    ) : (
+                                      // Default: Show all details
                                       <>
                                         <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
                                         <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div>
@@ -613,22 +740,6 @@ export default function VIP() {
                                           </span>
                                         </div>
                                       </>
-                                    ) : (
-                                      <div className="ml-auto">
-                                        {game.match_status === 'won' || game.match_status === 'Won' || game.match_status === 'WON' ? (
-                                          <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
-                                            <span className="text-white font-bold text-sm">✓</span>
-                                          </div>
-                                        ) : game.match_status === 'lost' || game.match_status === 'Lost' || game.match_status === 'LOST' ? (
-                                          <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full">
-                                            <span className="text-white font-bold text-sm">✗</span>
-                                          </div>
-                                        ) : (
-                                          <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full">
-                                            <span className="text-white font-bold text-sm">?</span>
-                                          </div>
-                                        )}
-                                      </div>
                                     )}
                                   </div>
                                 ))
