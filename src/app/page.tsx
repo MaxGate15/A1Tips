@@ -320,11 +320,11 @@ export default function Home() {
                           <div className="break-words">{match.tip}</div>
                         </td>
                         <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 text-center">
-                          {match.result === 'won' ? (
+                          {match.result.toLowerCase() === 'won' ? (
                             <div className="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full">
                               <span className="text-white font-bold text-sm sm:text-lg">✓</span>
                             </div>
-                          ) : match.result === 'lost' ? (
+                          ) : match.result.toLowerCase() === 'lost' ? (
                             <div className="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 bg-red-500 rounded-full">
                               <span className="text-white font-bold text-sm sm:text-lg">✗</span>
                             </div>
