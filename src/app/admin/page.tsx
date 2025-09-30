@@ -683,28 +683,63 @@ export default function Admin() {
     );
   };
 
-  const handleDeleteSelectedSlips = () => {
+  const handleDeleteSelectedSlips = async () => {
     if (selectedSlips.length === 0) return;
-    
-    // Determine which slip groups (by uploadDate) to remove based on selected slip ids
-    const slips = groupGamesIntoSlips();
-    const selectedSlipSet = new Set(selectedSlips);
-    const datesToDelete = new Set(
-      slips
-        .filter((slip) => selectedSlipSet.has(slip.id))
-        .map((slip) => slip.uploadDate)
-    );
 
-    // Remove all games whose uploadDate belongs to a selected slip
-    setLoadedGames((prev) => ({
-      ...prev,
-      Slips: prev.Slips.filter((game) => !datesToDelete.has(game.uploadDate)),
-    }));
-    
-    // Clear selection
-    setSelectedSlips([]);
-    
-    console.log('Deleted slips by dates:', Array.from(datesToDelete));
+    try {
+      // Get selected slips and collect unique booking IDs
+      const slips = groupGamesIntoSlips();
+      const selectedSlipSet = new Set(selectedSlips);
+      const selectedSlipsData = slips.filter((slip) => selectedSlipSet.has(slip.id));
+      
+      // Collect unique booking IDs from selected slips' games
+      const bookingIdsToDelete = new Set();
+      selectedSlipsData.forEach((slip) => {
+        slip.games.forEach((game) => {
+          if (game.booking_id) {
+            bookingIdsToDelete.add(game.booking_id);
+          }
+        });
+      });
+
+      console.log('Deleting bookings:', Array.from(bookingIdsToDelete));
+
+      // Delete each booking from backend
+      const deletePromises = Array.from(bookingIdsToDelete).map(async (bookingId) => {
+        const response = await fetch(`https://coral-app-l62hg.ondigitalocean.app/games/delete-booking/${bookingId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to delete booking ${bookingId}: ${response.statusText}`);
+        }
+
+        return response.json();
+      });
+
+      // Wait for all deletions to complete
+      await Promise.all(deletePromises);
+
+      // If all API calls succeed, update local state
+      const datesToDelete = new Set(selectedSlipsData.map((slip) => slip.uploadDate));
+      
+      setLoadedGames((prev) => ({
+        ...prev,
+        Slips: prev.Slips.filter((game) => !datesToDelete.has(game.uploadDate)),
+      }));
+      
+      setSelectedSlips([]);
+      
+      alert(`Successfully deleted ${selectedSlips.length} slip(s) from backend and local state.`);
+      
+    } catch (error) {
+      console.error('Error deleting slips:', error);
+      alert(`Failed to delete slips: ${error.message}. Please try again.`);
+      // Don't update local state if API calls fail
+    }
   };
 
   const handleSendSMS = async () => {

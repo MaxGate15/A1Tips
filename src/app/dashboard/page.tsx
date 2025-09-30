@@ -15,7 +15,48 @@ export default function Dashboard() {
   const { isAuthenticated, isLoading } = useAuth();
 
   // Simulate user data - in real app this would come from authentication
-  const userName = "Ronaldo";
+  
+  // const userEmail = localStorage.getItem('email') || 'user@example.com';
+    const [purchasedGames, setPurchasedGames] = useState<any[]>([]);
+useEffect(() => {
+    const fetchPurchases = async () => {
+      try {
+        const userEmail = localStorage.getItem('email') || '';
+        if (!userEmail) return;
+        const response = await fetch(`https://coral-app-l62hg.ondigitalocean.app/auth/games-purchases/${userEmail}`);
+        if (!response.ok) throw new Error('Failed to fetch purchases');
+        const data = await response.json();
+
+        // Transform API response to purchasedGames structure
+        const transformed = data.map((purchase: any) => {
+          const allCompleted = purchase.games.every((g: any) => {
+            const status = g.match_status?.toLowerCase();
+            return status === 'won' || status === 'lost';
+          });
+          return {
+            id: purchase.booking_id,
+            package: purchase.category,
+            games: purchase.games.map((g: any) => ({
+              match: `${g.home_team} vs ${g.away_team}`,
+              prediction: g.prediction,
+              odds: String(g.odds),
+              bookingCode: purchase.share_code,
+              status: g.match_status,
+            })),
+            purchaseDate: purchase.created_at ? purchase.created_at.slice(0, 10) : '',
+            price: purchase.price && purchase.price.trim() !== '' ? purchase.price : 'N/A',
+            status: allCompleted ? 'Completed' : 'Active',
+          };
+        });
+        setPurchasedGames(transformed);
+      } catch (err) {
+        console.error('Error fetching purchases:', err);
+        setPurchasedGames([]);
+      }
+    };
+    fetchPurchases();
+  }, []);
+
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -141,120 +182,10 @@ export default function Dashboard() {
       icon: FaChartLine,
     },
   ];
-
-  const purchasedGames = [
-    {
-      id: 1,
-      package: 'VIP 1',
-      games: [
-        {
-          match: 'Olympiacos vs Pafos FC',
-          prediction: 'Home Win',
-          odds: '1.45',
-          bookingCode: 'SPT123',
-          status: 'Pending' // Still in play, no results uploaded
-        },
-        {
-          match: 'Ajax vs Inter',
-          prediction: 'Over 2.5 Goals',
-          odds: '1.78',
-          bookingCode: 'SPT124',
-          status: 'Pending' // Still in play, no results uploaded
-        },
-        {
-          match: 'Bayern Munich vs Chelsea',
-          prediction: 'BTTS - Yes',
-          odds: '1.65',
-          bookingCode: 'SPT125',
-          status: 'Pending' // Still in play, no results uploaded
-        },
-        {
-          match: 'Liverpool vs Atletico Madrid',
-          prediction: 'Away Win',
-          odds: '2.10',
-          bookingCode: 'SPT126',
-          status: 'Pending' // Still in play, no results uploaded
-        }
-      ],
-      purchaseDate: '2024-01-15',
-      price: 'GHS 20',
-      status: 'Active', // All games still in play
-    },
-    {
-      id: 2,
-      package: 'VIP 2',
-      games: [
-        {
-          match: 'Arsenal vs Chelsea',
-          prediction: 'Home Win',
-          odds: '1.85',
-          bookingCode: 'SPT127',
-          status: 'Pending' // Still in play, no results uploaded
-        },
-        {
-          match: 'Barcelona vs Real Madrid',
-          prediction: 'Over 3.5 Goals',
-          odds: '2.20',
-          bookingCode: 'SPT128',
-          status: 'Pending' // Still in play, no results uploaded
-        },
-        {
-          match: 'PSG vs Bayern Munich',
-          prediction: 'Both Teams to Score',
-          odds: '1.70',
-          bookingCode: 'SPT129',
-          status: 'Pending' // Still in play, no results uploaded
-        },
-        {
-          match: 'Manchester City vs Liverpool',
-          prediction: 'Home Win',
-          odds: '1.95',
-          bookingCode: 'SPT130',
-          status: 'Pending' // Still in play, no results uploaded
-        }
-      ],
-      purchaseDate: '2024-01-14',
-      price: 'GHS 35',
-      status: 'Active', // All games still in play
-    },
-    {
-      id: 3,
-      package: 'VIP 3',
-      games: [
-        {
-          match: 'Juventus vs AC Milan',
-          prediction: 'Home Win',
-          odds: '1.45',
-          bookingCode: 'SPT131',
-          status: 'Won' // Results uploaded by admin
-        },
-        {
-          match: 'Inter Milan vs Napoli',
-          prediction: 'Away Win',
-          odds: '1.78',
-          bookingCode: 'SPT132',
-          status: 'Won' // Results uploaded by admin
-        },
-        {
-          match: 'Atletico Madrid vs Sevilla',
-          prediction: 'Home Win',
-          odds: '1.71',
-          bookingCode: 'SPT133',
-          status: 'Lost' // Results uploaded by admin
-        },
-        {
-          match: 'Newcastle vs FC Barcelona',
-          prediction: 'Home Win',
-          odds: '1.55',
-          bookingCode: 'SPT134',
-          status: 'Won' // Results uploaded by admin
-        }
-      ],
-      purchaseDate: '2024-01-13',
-      price: 'GHS 50',
-      status: 'Completed', // All games have results uploaded
-    },
-  ];
+  const getUsername = () => {
+    return localStorage.getItem('username') || 'User';
+  };
+  const userName = getUsername();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -288,8 +219,8 @@ export default function Dashboard() {
           <nav className="flex space-x-8">
             {[
               { id: 'overview', name: 'Overview' },
-              { id: 'history', name: 'History' },
-              { id: 'settings', name: 'Settings' },
+              // { id: 'history', name: 'History' },
+              // { id: 'settings', name: 'Settings' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -307,7 +238,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {stats.map((stat, index) => (
             <div key={index} className="bg-white overflow-hidden shadow rounded-lg">
               <div className="p-5">
@@ -338,7 +269,7 @@ export default function Dashboard() {
               </div>
             </div>
           ))}
-        </div>
+        </div> */}
 
         {/* Main Content */}
         {activeTab === 'overview' && (
@@ -417,15 +348,15 @@ export default function Dashboard() {
                           ))}
                           
                           {/* Booking Codes Section - Only show if all games are completed */}
-                          {allGamesCompleted(purchase.games) && (
+                          {allGamesCompleted(purchase.games) && purchase.games.length > 0 && (
                             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                               <h6 className="text-sm font-semibold text-blue-900 mb-2">Booking Codes:</h6>
                               <div className="space-y-1">
                                 <div className="flex items-center">
                                   <span className="text-xs font-medium text-blue-700 w-16">Sporty:</span>
-                                  <span className="text-xs font-mono text-blue-900 bg-blue-100 px-2 py-1 rounded">BCTDGJ</span>
+                                  <span className="text-xs font-mono text-blue-900 bg-blue-100 px-2 py-1 rounded">{purchase.games[0].bookingCode || purchase.share_code || 'N/A'}</span>
                                   <button 
-                                    onClick={() => copyToClipboard('BCTDGJ', 'sporty')}
+                                    onClick={() => copyToClipboard(purchase.games[0].bookingCode || purchase.share_code || '', 'sporty')}
                                     className="ml-2 flex items-center text-xs text-blue-600 hover:text-blue-800 transition-colors"
                                   >
                                     {copiedCode === 'sporty' ? (
@@ -441,26 +372,7 @@ export default function Dashboard() {
                                     )}
                                   </button>
                                 </div>
-                                <div className="flex items-center">
-                                  <span className="text-xs font-medium text-blue-700 w-16">Msport:</span>
-                                  <span className="text-xs font-mono text-blue-900 bg-blue-100 px-2 py-1 rounded">GDITBB</span>
-                                  <button 
-                                    onClick={() => copyToClipboard('GDITBB', 'msport')}
-                                    className="ml-2 flex items-center text-xs text-blue-600 hover:text-blue-800 transition-colors"
-                                  >
-                                    {copiedCode === 'msport' ? (
-                                      <>
-                                        <FaCheck className="w-3 h-3 mr-1 text-green-600" />
-                                        <span className="text-green-600">Copied!</span>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <FaCopy className="w-3 h-3 mr-1" />
-                                        <span>Copy</span>
-                                      </>
-                                    )}
-                                  </button>
-                                </div>
+                                {/* If you want to show Msport or other codes, add similar blocks here using purchase.share_code or other fields from API */}
                               </div>
                             </div>
                           )}
