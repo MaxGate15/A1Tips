@@ -211,7 +211,7 @@ export default function Home() {
                   Join VIP
                 </Link>
                 <Link
-                  href="https://t.me/+9ABbjlg7wpM1Mzc0"
+                  href="https://t.me/+S6zQhRKDOV02YjJk"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-lg text-base sm:text-lg transition-colors shadow-lg flex items-center justify-center gap-2"
