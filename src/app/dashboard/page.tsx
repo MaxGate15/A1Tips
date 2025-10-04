@@ -49,6 +49,7 @@ useEffect(() => {
           };
         });
         setPurchasedGames(transformed);
+        console.log('Fetched purchases:', transformed);
       } catch (err) {
         console.error('Error fetching purchases:', err);
         setPurchasedGames([]);
@@ -334,7 +335,7 @@ useEffect(() => {
                                 </span>
                               </div>
                               {/* Only show full details if all games are completed */}
-                              {allGamesCompleted(purchase.games) ? (
+                              { true ? (
                                 <div className="flex gap-4 text-xs">
                                   <div>
                                     <span className="font-medium text-gray-700">Prediction:</span> {game.prediction}
@@ -348,7 +349,7 @@ useEffect(() => {
                           ))}
                           
                           {/* Booking Codes Section - Only show if all games are completed */}
-                          {allGamesCompleted(purchase.games) && purchase.games.length > 0 && (
+                          {purchase.games.length > 0 && (
                             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                               <h6 className="text-sm font-semibold text-blue-900 mb-2">Booking Codes:</h6>
                               <div className="space-y-1">
