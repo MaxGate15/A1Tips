@@ -24,6 +24,15 @@ export default function VIP() {
     games: {home_team: string, away_team: string, prediction: string, odds: number, match_status: string}[];
   }[]>([]);
   const [isLoadingVipPackages, setIsLoadingVipPackages] = useState(true);
+  const [vipHistoryPackages, setVipHistoryPackages] = useState<{
+    category: string;
+    id: number;
+    price: string;
+    booking_code: string;
+    updated: boolean;
+    games: {home_team: string, away_team: string, prediction: string, odds: number, match_status: string}[];
+  }[]>([]);
+  const [isLoadingVipHistory, setIsLoadingVipHistory] = useState(false);
 
   // Security function: Check if a specific game is pending
   const isGamePending = (game: any) => {
@@ -150,6 +159,46 @@ export default function VIP() {
   
       fetchVipPackages();
     }, []);
+
+  // Fetch VIP history for selected non-today date or custom date
+  useEffect(() => {
+    const fetchVipHistory = async () => {
+      const isCustom = Boolean(dateFilter);
+      if (!isCustom && selectedDate !== 'yesterday' && selectedDate !== 'tomorrow') {
+        setVipHistoryPackages([]);
+        return;
+      }
+      setIsLoadingVipHistory(true);
+      try {
+        let apiDate = new Date().toISOString().split('T')[0];
+        if (selectedDate === 'yesterday') {
+          const d = new Date();
+          d.setDate(d.getDate() - 1);
+          apiDate = d.toISOString().split('T')[0];
+        } else if (selectedDate === 'tomorrow') {
+          const d = new Date();
+          d.setDate(d.getDate() + 1);
+          apiDate = d.toISOString().split('T')[0];
+        } else if (isCustom) {
+          apiDate = dateFilter;
+        }
+
+        const endpoint = `https://coral-app-l62hg.ondigitalocean.app/games/vip-history?date=${apiDate}`;
+        console.log('Fetching VIP history from:', endpoint);
+        const res = await fetch(endpoint);
+        if (!res.ok) throw new Error('VIP history not available yet');
+        const data = await res.json();
+        setVipHistoryPackages(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.warn('VIP history fetch skipped/failed (backend to provide):', err);
+        setVipHistoryPackages([]);
+      } finally {
+        setIsLoadingVipHistory(false);
+      }
+    };
+
+    fetchVipHistory();
+  }, [selectedDate, dateFilter]);
   
     // Show loading while checking authentication
     if (isLoading) {
@@ -491,6 +540,67 @@ export default function VIP() {
                           )}
                         </div>
                       </div>
+
+        {/* VIP History (for Yesterday/Custom dates) */}
+        {(selectedDate === 'yesterday' || selectedDate === 'tomorrow' || dateFilter) && (
+          <div className="bg-white shadow rounded-lg p-6 mt-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">VIP History</h2>
+              <p className="text-gray-600">Past VIP games for the selected date</p>
+            </div>
+
+            {isLoadingVipHistory ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                <span className="ml-2 text-gray-600">Loading VIP history...</span>
+              </div>
+            ) : vipHistoryPackages.length === 0 ? (
+              <div className="text-center text-gray-600 py-6">
+                VIP history not available yet for this date.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                {(['VIP1','VIP2','VIP3'] as const).map((vipKey) => (
+                  <div key={vipKey} className="bg-white border rounded-lg shadow-lg p-6">
+                    <div className="text-center">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-4">{vipKey.replace('VIP', 'VIP ')}</h3>
+                      <div className="mb-4 text-left">
+                        {(() => {
+                          const pkg = vipHistoryPackages.find(p => p.category === vipKey);
+                          if (!pkg) return <div className="text-gray-600 text-center py-4">No matches available</div>;
+                          return (
+                            <div className="space-y-4">
+                              {pkg.games.map((game, index) => (
+                                <div key={index} className={`${index < pkg.games.length - 1 ? 'border-b border-gray-100 pb-3' : ''}`}>
+                                  <h4 className="text-gray-900 font-semibold mb-2">{game.home_team} vs {game.away_team}</h4>
+                                  <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
+                                  <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Option: {game.prediction}</span>
+                                    <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Odds: {game.odds}</span>
+                                    <span className="ml-auto">
+                                      {game.match_status?.toLowerCase() === 'won' ? (
+                                        <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full"><span className="text-white font-bold text-sm">✓</span></div>
+                                      ) : game.match_status?.toLowerCase() === 'lost' ? (
+                                        <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full"><span className="text-white font-bold text-sm">✗</span></div>
+                                      ) : (
+                                        <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full"><span className="text-white font-bold text-sm">?</span></div>
+                                      )}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
           
                       {/* VIP Package 2 */}
                       <div className={`bg-white border rounded-lg shadow-lg p-6 transition-shadow ${
