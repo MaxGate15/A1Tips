@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FaCalendarAlt, FaCrown, FaFire, FaTrophy, FaClock, FaCopy } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
 import PaymentDropdown from '../../components/PaymentDropdown';
+import { select } from 'framer-motion/client';
 
 export default function Predictions() {
   const [selectedDate, setSelectedDate] = useState('today');
@@ -660,15 +661,16 @@ export default function Predictions() {
           </div>
 
         {/* Match Prediction Cards */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Today's Featured Matches
-            </h2>
-            <p className="text-gray-600">
-              Premium predictions with high confidence ratings
-            </p>
-          </div>
+        {selectedDate === "today" && !dateFilter && (
+          <div className="bg-white shadow rounded-lg p-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Today's Featured Matches
+              </h2>
+              <p className="text-gray-600">
+                Premium predictions with high confidence ratings
+              </p>
+            </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                                 {/* VIP Package 1 */}
@@ -828,66 +830,7 @@ export default function Predictions() {
                                   </div>
                                 </div>
 
-        {/* VIP History (for Yesterday/Custom dates) */}
-        {(selectedDate === 'yesterday' || selectedDate === 'tomorrow' || dateFilter) && (
-          <div className="bg-white shadow rounded-lg p-6 mt-6">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">VIP History</h2>
-              <p className="text-gray-600">Past VIP games for the selected date</p>
-            </div>
-
-            {isLoadingVipHistory ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-                <span className="ml-2 text-gray-600">Loading VIP history...</span>
-              </div>
-            ) : vipHistoryPackages.length === 0 ? (
-              <div className="text-center text-gray-600 py-6">
-                VIP history not available yet for this date.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                {(['VIP1','VIP2','VIP3'] as const).map((vipKey) => (
-                  <div key={vipKey} className="bg-white border rounded-lg shadow-lg p-6">
-                    <div className="text-center">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-4">{vipKey.replace('VIP', 'VIP ')}</h3>
-                      <div className="mb-4 text-left">
-                        {(() => {
-                          const pkg = vipHistoryPackages.find(p => p.category === vipKey);
-                          if (!pkg) return <div className="text-gray-600 text-center py-4">No matches available</div>;
-                          return (
-                            <div className="space-y-4">
-                              {pkg.games.map((game, index) => (
-                                <div key={index} className={`${index < pkg.games.length - 1 ? 'border-b border-gray-100 pb-3' : ''}`}>
-                                  <h4 className="text-gray-900 font-semibold mb-2">{game.home_team} vs {game.away_team}</h4>
-                                  <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
-                                  <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Option: {game.prediction}</span>
-                                    <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Odds: {game.odds}</span>
-                                    <span className="ml-auto">
-                                      {game.match_status?.toLowerCase() === 'won' ? (
-                                        <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full"><span className="text-white font-bold text-sm">✓</span></div>
-                                      ) : game.match_status?.toLowerCase() === 'lost' ? (
-                                        <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full"><span className="text-white font-bold text-sm">✗</span></div>
-                                      ) : (
-                                        <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full"><span className="text-white font-bold text-sm">?</span></div>
-                                      )}
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        
                     
                                 {/* VIP Package 2 */}
                                 <div className={`bg-white border rounded-lg shadow-lg p-6 transition-shadow ${
@@ -1060,7 +1003,7 @@ export default function Predictions() {
                                           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500"></div>
                                           <span className="ml-2 text-gray-600">Loading matches...</span>
                                         </div>
-                                      ) : getVipPackageByCategory('VIP3') ? (
+                                      ) : getVipPackageByCategory('VIP3')? (
                                         getVipPackageByCategory('VIP3')!.updated ? (
                                           getVipPackageByCategory('VIP3')!.games.map((game, index) => (
                                             <div key={index} className={`${index < getVipPackageByCategory('VIP3')!.games.length - 1 ? 'border-b border-gray-100 pb-3' : ''}`}>
@@ -1185,7 +1128,69 @@ export default function Predictions() {
                                   </div>
                                 </div>
                               </div>
-        </div>
+          </div>
+        )}
+
+        {/* VIP History (for Yesterday/Custom dates) */}
+        {(selectedDate === 'yesterday' || selectedDate === 'tomorrow' || dateFilter) && (
+          <div className="bg-white shadow rounded-lg p-6 mt-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">VIP History</h2>
+              <p className="text-gray-600">Past VIP games for the selected date</p>
+            </div>
+
+            {isLoadingVipHistory ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                <span className="ml-2 text-gray-600">Loading VIP history...</span>
+              </div>
+            ) : vipHistoryPackages.length === 0 ? (
+              <div className="text-center text-gray-600 py-6">
+                VIP history not available yet for this date.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                {(['VIP1','VIP2','VIP3'] as const).map((vipKey) => (
+                  <div key={vipKey} className="bg-white border rounded-lg shadow-lg p-6">
+                    <div className="text-center">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-4">{vipKey.replace('VIP', 'VIP ')}</h3>
+                      <div className="mb-4 text-left">
+                        {(() => {
+                          const pkg = vipHistoryPackages.find(p => p.category === vipKey);
+                          if (!pkg) return <div className="text-gray-600 text-center py-4">No matches available</div>;
+                          return (
+                            <div className="space-y-4">
+                              {pkg.games.map((game, index) => (
+                                <div key={index} className={`${index < pkg.games.length - 1 ? 'border-b border-gray-100 pb-3' : ''}`}>
+                                  <h4 className="text-gray-900 font-semibold mb-2">{game.home_team} vs {game.away_team}</h4>
+                                  <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
+                                  <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Option: {game.prediction}</span>
+                                    <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Odds: {game.odds}</span>
+                                    <span className="ml-auto">
+                                      {game.match_status?.toLowerCase() === 'won' ? (
+                                        <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full"><span className="text-white font-bold text-sm">✓</span></div>
+                                      ) : game.match_status?.toLowerCase() === 'lost' ? (
+                                        <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full"><span className="text-white font-bold text-sm">✗</span></div>
+                                      ) : (
+                                        <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full"><span className="text-white font-bold text-sm">?</span></div>
+                                      )}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
