@@ -413,14 +413,14 @@ export default function VIP() {
                                                           isGameCompleted(game) ? (
                                                             <>
                                                               <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
-                                                              <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div>
+                                                              {/* <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div> */}
                                                               <div className="flex items-center gap-2">
                                                                 <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
                                                                   Option: {game.prediction}
                                                                 </span>
-                                                                <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                                                                {/* <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
                                                                   Odds: {game.odds}
-                                                                </span>
+                                                                </span> */}
                                                                 <span className="ml-auto">
                                                                   {game.match_status?.toLowerCase() === 'won' ? (
                                                                     <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
@@ -459,14 +459,14 @@ export default function VIP() {
                                                           // Default: Show all details
                                                           <>
                                                             <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
-                                                            <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div>
+                                                            {/* <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div> */}
                                                             <div className="flex items-center gap-2">
                                                               <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
                                                                 Option: {game.prediction}
                                                               </span>
-                                                              <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                                                              {/* <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
                                                                 Odds: {game.odds}
-                                                              </span>
+                                                              </span> */}
                                                               <span className="ml-auto">
                                                                 {game.match_status?.toLowerCase() === 'won' ? (
                                                                   <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
@@ -572,14 +572,14 @@ export default function VIP() {
                                                           isGameCompleted(game) ? (
                                                             <>
                                                               <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
-                                                              <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div>
+                                                              {/* <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div> */}
                                                               <div className="flex items-center gap-2">
                                                                 <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
                                                                   Option: {game.prediction}
                                                                 </span>
-                                                                <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                                                                {/* <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
                                                                   Odds: {game.odds}
-                                                                </span>
+                                                                </span> */}
                                                                 <span className="ml-auto">
                                                                   {game.match_status?.toLowerCase() === 'won' ? (
                                                                     <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
@@ -618,14 +618,14 @@ export default function VIP() {
                                                           // Default: Show all details
                                                           <>
                                                             <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
-                                                            <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div>
+                                                            {/* <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div> */}
                                                             <div className="flex items-center gap-2">
                                                               <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
                                                                 Option: {game.prediction}
                                                               </span>
-                                                              <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                                                              {/* <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
                                                                 Odds: {game.odds}
-                                                              </span>
+                                                              </span> */}
                                                               <span className="ml-auto">
                                                                 {game.match_status?.toLowerCase() === 'won' ? (
                                                                   <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
@@ -719,10 +719,10 @@ export default function VIP() {
                                                         isGameCompleted(game) ? (
                                                           <>
                                                             <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
-                                                            <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div>
+                                                            {/* <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div> */}
                                                             <div className="flex items-center gap-2">
                                                               <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Option: {game.prediction}</span>
-                                                              <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Odds: {game.odds}</span>
+                                                              {/* <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Odds: {game.odds}</span> */}
                                                               <span className="ml-auto">
                                                                 {game.match_status === 'won' || game.match_status === 'Won' || game.match_status === 'WON' ? (
                                                                   <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
@@ -761,10 +761,10 @@ export default function VIP() {
                                                         // Default: Show all details
                                                         <>
                                                           <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
-                                                          <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div>
+                                                          {/* <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div> */}
                                                           <div className="flex items-center gap-2">
                                                             <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Option: {game.prediction}</span>
-                                                            <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Odds: {game.odds}</span>
+                                                            {/* <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Odds: {game.odds}</span> */}
                                                             <span className="ml-auto">
                                                               {game.match_status === 'won' || game.match_status === 'Won' || game.match_status === 'WON' ? (
                                                                 <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
@@ -866,10 +866,10 @@ export default function VIP() {
                                         <div key={index} className={`${index < pkg.games.length - 1 ? 'border-b border-gray-100 pb-3' : ''}`}>
                                           <h4 className="text-gray-900 font-semibold mb-2">{game.home_team} vs {game.away_team}</h4>
                                           <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
-                                          <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div>
+                                          {/* <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div> */}
                                           <div className="flex items-center gap-2">
                                             <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Option: {game.prediction}</span>
-                                            <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Odds: {game.odds}</span>
+                                            {/* <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Odds: {game.odds}</span> */}
                                             <span className="ml-auto">
                                               {game.match_status?.toLowerCase() === 'won' ? (
                                                 <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full"><span className="text-white font-bold text-sm">✓</span></div>
