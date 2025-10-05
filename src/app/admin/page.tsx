@@ -87,7 +87,6 @@ export default function Admin() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedGame, setSelectedGame] = useState(null);
   const [sportyCode, setSportyCode] = useState('');
-  const [msportCode, setMsportCode] = useState('');
   const [gamePrice, setGamePrice] = useState('');
   // Price management states - separate prices for each category
   const [categoryPrices, setCategoryPrices] = useState({
@@ -257,7 +256,6 @@ export default function Admin() {
             categoryPrice: booking.booking.price,
             uploadDate: booking.booking.deadline,
             sportyCode: booking.booking.share_code,
-            msportCode: booking.booking.share_code, // Use same code as fallback
             match_status: game.match_status || 'Pending',
             booking_id: booking.booking.id // Store booking ID for backend updates
           }));
@@ -418,17 +416,15 @@ export default function Admin() {
     setSelectedGame({ category: selectedCategory, games: loadedGames[selectedCategory] });
     // Pre-populate with existing codes if they exist
     setSportyCode(loadedGames[selectedCategory]?.[0]?.sportyCode || '');
-    setMsportCode(loadedGames[selectedCategory]?.[0]?.msportCode || '');
     setShowBookingModal(true);
   };
 
   const handleAttachBooking = () => {
-    if (sportyCode.trim() && msportCode.trim()) {
+    if (sportyCode.trim()) {
       // Save booking codes to the games in the category
       const updatedGames = loadedGames[selectedCategory].map(game => ({
         ...game,
-        sportyCode: sportyCode.trim(),
-        msportCode: msportCode.trim()
+        sportyCode: sportyCode.trim()
       }));
       
       setLoadedGames(prev => ({
@@ -436,10 +432,10 @@ export default function Admin() {
         [selectedCategory]: updatedGames
       }));
       
-      console.log('Booking codes saved:', { sportyCode, msportCode, category: selectedCategory });
+      console.log('Booking codes saved:', { sportyCode, category: selectedCategory });
     } else {
       // Show validation message if fields are empty
-      alert('Please fill in both SportyBet and MSport codes before attaching.');
+      alert('Please fill in SportyBet code before attaching.');
       return;
     }
     
@@ -447,14 +443,12 @@ export default function Admin() {
       setShowBookingModal(false);
       setSelectedGame(null);
       setSportyCode('');
-      setMsportCode('');
   };
 
   const handleCancelBooking = () => {
     setShowBookingModal(false);
     setSelectedGame(null);
     setSportyCode('');
-    setMsportCode('');
   };
 
   const handleSetPrice = () => {
@@ -860,7 +854,6 @@ export default function Admin() {
       originalCategory: (games as any[])[0]?.originalCategory || 'Free',
       totalOdds: (games as any[]).reduce((total: number, game: any) => total * (game.odds || 1), 1).toFixed(2),
       sportyCode: (games as any[])[0]?.sportyCode || 'N/A',
-      msportCode: (games as any[])[0]?.msportCode || 'N/A'
     }));
 
     // Filter out archived slips
@@ -1255,7 +1248,6 @@ export default function Admin() {
                       <div className="text-sm text-blue-800 font-medium mb-1">Saved Booking Codes:</div>
                       <div className="text-sm text-blue-700">
                         <div>SportyBet: {loadedGames[selectedCategory][0].sportyCode}</div>
-                        <div>MSport: {loadedGames[selectedCategory][0].msportCode}</div>
                       </div>
                     </div>
                   )}
@@ -1346,7 +1338,7 @@ export default function Admin() {
                             {/* Slip Summary */}
                             <div className="mb-4 text-sm text-gray-600">
                               <p>{slip.games.length} games • Total Odds: {slip.totalOdds} • {new Date(slip.uploadDate).toLocaleDateString()}, {new Date(slip.uploadDate).toLocaleTimeString()}</p>
-                              <p>SportyBet: {slip.sportyCode} MSport: {slip.msportCode}</p>
+                              <p>SportyBet: {slip.sportyCode}</p>
                             </div>
 
                             {/* Individual Games */}
@@ -1584,18 +1576,6 @@ export default function Admin() {
                                   />
                                 </div>
                                 
-                                <div>
-                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                    MSport Code
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={msportCode}
-                                    onChange={(e) => setMsportCode(e.target.value)}
-                                    placeholder="e.g. efgh"
-                                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                                  />
-                                </div>
                               </div>
 
                               {/* Buttons */}

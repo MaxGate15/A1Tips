@@ -107,7 +107,6 @@ export default function Predictions() {
           if (booking.booking_code) {
             codes.push(
               { platform: 'Sporty', code: booking.booking_code },
-              { platform: 'MSport', code: booking.booking_code }
             );
           }
           
@@ -124,7 +123,6 @@ export default function Predictions() {
         setMatches(transformedMatches);
         setBookingCodes(codes.length > 0 ? codes : [
           { platform: 'Sporty', code: 'No codes available' },
-          { platform: 'MSport', code: 'No codes available' }
         ]);
         
       } catch (error) {
@@ -134,7 +132,6 @@ export default function Predictions() {
         setMatches([]);
         setBookingCodes([
           { platform: 'Sporty', code: 'Error loading' },
-          { platform: 'MSport', code: 'Error loading' }
         ]);
       } finally {
         setIsLoadingMatches(false);

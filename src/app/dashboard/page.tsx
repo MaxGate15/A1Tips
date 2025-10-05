@@ -340,9 +340,6 @@ useEffect(() => {
                                   <div>
                                     <span className="font-medium text-gray-700">Prediction:</span> {game.prediction}
                                   </div>
-                                  <div>
-                                    <span className="font-medium text-gray-700">Odds:</span> {game.odds}
-                                  </div>
                                 </div>
                               ) : null}
                             </div>
@@ -373,7 +370,7 @@ useEffect(() => {
                                     )}
                                   </button>
                                 </div>
-                                {/* If you want to show Msport or other codes, add similar blocks here using purchase.share_code or other fields from API */}
+                                {/* If you want to show other codes, add similar blocks here using purchase.share_code or other fields from API */}
                               </div>
                             </div>
                           )}
@@ -457,9 +454,6 @@ useEffect(() => {
                                   <div>
                                     <span className="font-medium text-gray-700">Prediction:</span> {game.prediction}
                                   </div>
-                                  <div>
-                                    <span className="font-medium text-gray-700">Odds:</span> {game.odds}
-                                  </div>
                                 </div>
                               ) : null}
                             </div>
@@ -478,26 +472,6 @@ useEffect(() => {
                                     className="ml-3 flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
                                   >
                                     {copiedCode === 'sporty' ? (
-                                      <>
-                                        <FaCheck className="w-3 h-3 mr-1 text-green-600" />
-                                        <span className="text-green-600">Copied!</span>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <FaCopy className="w-3 h-3 mr-1" />
-                                        <span>Copy</span>
-                                      </>
-                                    )}
-                                  </button>
-                                </div>
-                                <div className="flex items-center">
-                                  <span className="text-sm font-medium text-blue-700 w-20">Msport:</span>
-                                  <span className="text-sm font-mono text-blue-900 bg-blue-100 px-3 py-1 rounded">GDITBB</span>
-                                  <button 
-                                    onClick={() => copyToClipboard('GDITBB', 'msport')}
-                                    className="ml-3 flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
-                                  >
-                                    {copiedCode === 'msport' ? (
                                       <>
                                         <FaCheck className="w-3 h-3 mr-1 text-green-600" />
                                         <span className="text-green-600">Copied!</span>
