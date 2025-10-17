@@ -72,13 +72,10 @@ export default function PaymentDropdown({
       document.body.removeChild(script);
     };
   }, []);
-  console.log('Price in GHS:', priceInGHS);
-  console.log('Price in USD:', priceInUSD);
 
 
 
   const onClose = () => {
-    console.log('Payment closed');
     onPaymentClose();
     setShowLocationModal(false);
   };
@@ -126,7 +123,6 @@ export default function PaymentDropdown({
           }
         })
         .then(verificationResult => {
-          console.log('Payment verified successfully:', verificationResult);
           onPaymentSuccess(response.reference);
           // redirect to dashboard
           router.push('/dashboard');

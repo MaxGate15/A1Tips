@@ -23,7 +23,6 @@ export default function Admin() {
         }
         
         const data = await response.json();
-        console.log('Fetched VIP plans data:', data);
         
         // Transform API response to match expected state shape
         const transformedPlans = data.map(plan => ({
@@ -211,7 +210,6 @@ export default function Admin() {
         }
         
         const userData = await response.json();
-        console.log('Fetched users data:', userData);
         
         setUsers(userData);
         
@@ -242,7 +240,6 @@ export default function Admin() {
         }
         
         const bookingsData = await response.json();
-        console.log('Fetched existing slips data:', bookingsData);
         
         // Transform API response to match current UI format
         const transformedSlips = bookingsData.map((booking) => {
@@ -270,7 +267,6 @@ export default function Admin() {
       } catch (error) {
         console.error('Error fetching existing slips:', error);
         // Don't show alert for this as it's background loading
-        console.log('Failed to fetch existing slips, continuing with empty state');
       }
     };
 
@@ -298,7 +294,6 @@ export default function Admin() {
         ? `https://coral-app-l62hg.ondigitalocean.app/games/mark-sold-out/${planId}`
         : `https://coral-app-l62hg.ondigitalocean.app/games/update-availability/${planId}`;
 
-      console.log(`Updating VIP plan ${planId} to ${newStatus}...`);
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -312,7 +307,6 @@ export default function Admin() {
       }
 
       const responseData = await response.json();
-      console.log('Status update successful:', responseData);
 
       // Update local state only after successful API response
       setVipPlans(prev => {
@@ -432,7 +426,6 @@ export default function Admin() {
         [selectedCategory]: updatedGames
       }));
       
-      console.log('Booking codes saved:', { sportyCode, category: selectedCategory });
     } else {
       // Show validation message if fields are empty
       alert('Please fill in SportyBet code before attaching.');
@@ -452,16 +445,13 @@ export default function Admin() {
   };
 
   const handleSetPrice = () => {
-    console.log('Set Price clicked for category:', selectedCategory);
     setSelectedGame({ category: selectedCategory, games: loadedGames[selectedCategory] });
     // Pre-populate with existing price if it exists
     setGamePrice(categoryPrices[selectedCategory] || '');
     setShowPriceModal(true);
-    console.log('Price modal should be visible now');
   };
 
   const handleSavePrice = () => {
-    console.log('Save Price clicked, gamePrice:', gamePrice, 'selectedCategory:', selectedCategory);
     if (gamePrice.trim()) {
       // Save price to the specific category only
       setCategoryPrices(prev => ({
@@ -469,17 +459,11 @@ export default function Admin() {
         [selectedCategory]: gamePrice.trim()
       }));
       
-      console.log('Price saved for category:', { 
-        price: gamePrice.trim(), 
-        category: selectedCategory,
-        gamesCount: loadedGames[selectedCategory].length
-      });
       
       setShowPriceModal(false);
       setSelectedGame(null);
       setGamePrice('');
     } else {
-      console.log('Game price is empty, not saving');
     }
   };
 
@@ -523,7 +507,6 @@ export default function Admin() {
         price: categoryPrice,
         games: transformedGames
       };
-      console.log('Uploading booking with data:', requestBody);
 
       const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/games/upload-booking', {
         method: 'POST',
@@ -538,7 +521,6 @@ export default function Admin() {
       }
 
       const responseData = await response.json();
-      console.log('Backend response:', responseData);
 
       // Clear current category games and bookings on success
       setLoadedGames(prev => ({
@@ -560,7 +542,6 @@ export default function Admin() {
   };
 
   const handleEditGame = (game, slipId = null) => {
-    console.log('Editing game:', game.id, 'with status:', game.match_status, 'match:', game.match);
     setEditingGame(game);
     setGameResult(game.match_status || 'Pending');       
     setShowEditModal(true);
@@ -568,27 +549,17 @@ export default function Admin() {
 
   const handleSaveResult = async (result) => {
     if (result && editingGame) {
-      console.log('Updating game result:', { 
-        editingGameId: editingGame.id, 
-        originalId: editingGame.originalId,
-        match: editingGame.match,
-        result: result,
-        allSlipsCount: loadedGames.Slips.length 
-      });
       
       // Update the game result in Slips
       setLoadedGames(prev => {
         const updatedSlips = prev.Slips.map(game => {
           if (game.id === editingGame.id) {
-            console.log('Found matching game to update:', game.id, 'match:', game.match, 'from', game.match_status, 'to', result);
             const updatedGame = { ...game, match_status: result };
-            console.log('Updated game object:', updatedGame);
             return updatedGame;
           }
           return game;
         });
         
-        console.log('Updated slips:', updatedSlips);
         return {
         ...prev,
           Slips: updatedSlips
@@ -615,7 +586,6 @@ export default function Admin() {
           games: gamesPayload
         };
 
-        console.log('Sending game status update to backend:', { bookingId, payload });
 
         const response = await fetch(`https://coral-app-l62hg.ondigitalocean.app/games/update-games-status/${bookingId}`, {
           method: 'POST',
@@ -630,10 +600,8 @@ export default function Admin() {
         }
 
         const responseData = await response.json();
-        console.log('Backend update successful:', responseData);
 
         // Only close modal and reset state on successful API call
-      console.log('Game result saved:', { game: editingGame, result: result });
       setShowEditModal(false);
       setEditingGame(null);
       setGameResult('');
@@ -696,7 +664,6 @@ export default function Admin() {
         });
       });
 
-      console.log('Deleting bookings:', Array.from(bookingIdsToDelete));
 
       // Delete each booking from backend
       const deletePromises = Array.from(bookingIdsToDelete).map(async (bookingId) => {
@@ -747,7 +714,6 @@ export default function Admin() {
       const encodedMessage = encodeURIComponent(smsMessage.trim());
       const endpoint = `https://coral-app-l62hg.ondigitalocean.app/sms/send_bulk?message=${encodedMessage}`;
 
-      console.log('Sending SMS to API:', { message: smsMessage, recipients: smsRecipients });
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -761,7 +727,6 @@ export default function Admin() {
       }
 
       const responseData = await response.json();
-      console.log('SMS API response:', responseData);
 
       // Check if the API response indicates success
       if (responseData.status === 'success') {

@@ -98,7 +98,6 @@ export default function Predictions() {
           endpoint = `https://coral-app-l62hg.ondigitalocean.app/games/other-games?date=${apiDate}`;
         }
   
-        console.log('Fetching matches from:', endpoint);
         const response = await fetch(endpoint);
         
         if (!response.ok) {
@@ -106,7 +105,6 @@ export default function Predictions() {
         }
         
         const data = await response.json();
-        console.log('Fetched matches data:', data);
         
         // Transform API response to match UI format
         const transformedMatches: {teams: string, tip: string, result: string}[] = [];
@@ -202,7 +200,6 @@ export default function Predictions() {
   useEffect(() => {
     const fetchVipAvailability = async () => {
       try {
-        console.log('Fetching VIP availability from API...');
         const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/games/vip-list');
         
         if (!response.ok) {
@@ -210,7 +207,6 @@ export default function Predictions() {
         }
         
         const data = await response.json();
-        console.log('Fetched VIP availability data:', data);
         
         // Transform API response to match expected state shape
         const transformedAvailability = {
@@ -227,13 +223,11 @@ export default function Predictions() {
           }
         });
         
-        console.log('Transformed VIP availability:', transformedAvailability);
         setVipAvailability(transformedAvailability);
         
       } catch (error) {
         console.error('Error fetching VIP availability:', error);
         // Keep default state (all false) on error
-        console.log('Using default VIP availability state due to error');
       }
     };
 
@@ -245,7 +239,6 @@ export default function Predictions() {
       if (storedStatuses) {
         try {
           const parsedStatuses = JSON.parse(storedStatuses);
-          console.log('Found localStorage VIP statuses:', parsedStatuses);
           // Only use localStorage if API data is not available
           setVipAvailability(prevState => {
             // Merge with API data, prioritizing API data over localStorage
@@ -259,7 +252,6 @@ export default function Predictions() {
 
     // Listen for storage changes (when admin updates VIP status)
     const handleStorageChange = () => {
-      console.log('Storage changed, checking for VIP status updates...');
       checkLocalStorage();
     };
     
@@ -273,7 +265,6 @@ export default function Predictions() {
     const fetchVipPackages = async () => {
       setIsLoadingVipPackages(true);
       try {
-        console.log('Fetching VIP packages from API...');
         const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/games/vip-for-today');
         
         if (!response.ok) {
@@ -281,7 +272,6 @@ export default function Predictions() {
         }
         
         const data = await response.json();
-        console.log('Fetched VIP packages data:', data);
         
         setVipPackages(data);
         
@@ -326,7 +316,6 @@ export default function Predictions() {
 
         // Placeholder endpoint – backend will supply data
         const endpoint = `https://coral-app-l62hg.ondigitalocean.app/games/vip-history?date=${apiDate}`;
-        console.log('Fetching VIP history from:', endpoint);
         const res = await fetch(endpoint);
 
         if (!res.ok) {
@@ -365,7 +354,6 @@ export default function Predictions() {
   };
 
   const handlePaymentSuccess = (reference: string) => {
-    console.log('Payment successful:', reference);
     // Here you would typically update the user's purchased packages
     // For now, we'll just show an alert
     alert(`Payment successful! Reference: ${reference}`);
@@ -375,7 +363,6 @@ export default function Predictions() {
   
 
   const handlePaymentClose = () => {
-    console.log('Payment cancelled');
   };
 
   const handleBookingToggle = () => {

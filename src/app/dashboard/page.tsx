@@ -49,7 +49,6 @@ useEffect(() => {
           };
         });
         setPurchasedGames(transformed);
-        console.log('Fetched purchases:', transformed);
       } catch (err) {
         console.error('Error fetching purchases:', err);
         setPurchasedGames([]);

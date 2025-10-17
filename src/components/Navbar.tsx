@@ -23,7 +23,7 @@ export default function Navbar() {
 
   // Debug authentication state
   useEffect(() => {
-    console.log('🧭 Navbar: Authentication state changed - isAuthenticated:', isAuthenticated, 'user:', user, 'isAdmin:', isAdmin);
+    // Authentication state tracking removed
   }, [isAuthenticated, user, isAdmin]);
 
   // Close dropdown when clicking outside

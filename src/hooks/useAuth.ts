@@ -22,9 +22,6 @@ export const useAuth = () => {
         if (userData) {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
-          console.log('🔐 Auth: User found in localStorage:', parsedUser);
-        } else {
-          console.log('🔐 Auth: No user found in localStorage');
         }
       } catch (error) {
         console.error('Error checking auth:', error);
@@ -38,7 +35,6 @@ export const useAuth = () => {
     // Listen for storage changes (when user logs in from another tab)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'user') {
-        console.log('🔐 Auth: Storage changed, rechecking auth');
         checkAuth();
       }
     };
@@ -51,14 +47,11 @@ export const useAuth = () => {
   }, []);
 
   const login = (userData: User) => {
-    console.log('🔐 Auth: Logging in user:', userData);
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
-    console.log('🔐 Auth: User state updated, isAuthenticated:', !!userData);
   };
 
   const logout = () => {
-    console.log('🔐 Auth: Logging out user');
     localStorage.removeItem('user');
     setUser(null);
   };

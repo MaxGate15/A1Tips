@@ -63,7 +63,6 @@ export default function Home() {
         endpoint = `https://coral-app-l62hg.ondigitalocean.app/games/other-games?date=${apiDate}`;
       }
 
-      console.log('Fetching matches from:', endpoint);
       const response = await fetch(endpoint);
       
       if (!response.ok) {
@@ -71,7 +70,6 @@ export default function Home() {
       }
       
       const data = await response.json();
-      console.log('Fetched matches data:', data);
       
       // Transform API response to match UI format
       const transformedMatches: {teams: string, tip: string, result: string}[] = [];

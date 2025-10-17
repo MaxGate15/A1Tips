@@ -65,7 +65,6 @@ export default function VIP() {
     useEffect(() => {
       const fetchVipAvailability = async () => {
         try {
-          console.log('Fetching VIP availability from API...');
           const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/games/vip-list');
           
           if (!response.ok) {
@@ -73,7 +72,6 @@ export default function VIP() {
           }
           
           const data = await response.json();
-          console.log('Fetched VIP availability data:', data);
           
           // Transform API response to match expected state shape
           const transformedAvailability = {
@@ -90,13 +88,11 @@ export default function VIP() {
             }
           });
           
-          console.log('Transformed VIP availability:', transformedAvailability);
           setVipAvailability(transformedAvailability);
           
         } catch (error) {
           console.error('Error fetching VIP availability:', error);
           // Keep default state (all false) on error
-          console.log('Using default VIP availability state due to error');
         }
       };
   
@@ -108,7 +104,6 @@ export default function VIP() {
         if (storedStatuses) {
           try {
             const parsedStatuses = JSON.parse(storedStatuses);
-            console.log('Found localStorage VIP statuses:', parsedStatuses);
             // Only use localStorage if API data is not available
             setVipAvailability(prevState => {
               // Merge with API data, prioritizing API data over localStorage
@@ -122,7 +117,6 @@ export default function VIP() {
   
       // Listen for storage changes (when admin updates VIP status)
       const handleStorageChange = () => {
-        console.log('Storage changed, checking for VIP status updates...');
         checkLocalStorage();
       };
       
@@ -136,7 +130,6 @@ export default function VIP() {
       const fetchVipPackages = async () => {
         setIsLoadingVipPackages(true);
         try {
-          console.log('Fetching VIP packages from API...');
           const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/games/vip-for-today');
           
           if (!response.ok) {
@@ -144,7 +137,6 @@ export default function VIP() {
           }
           
           const data = await response.json();
-          console.log('Fetched VIP packages data:', data);
           
           setVipPackages(data);
           
@@ -184,7 +176,6 @@ export default function VIP() {
         }
 
         const endpoint = `https://coral-app-l62hg.ondigitalocean.app/games/vip-history?date=${apiDate}`;
-        console.log('Fetching VIP history from:', endpoint);
         const res = await fetch(endpoint);
         if (!res.ok) throw new Error('VIP history not available yet');
         const data = await res.json();
@@ -219,7 +210,6 @@ export default function VIP() {
     // };
   
     // const handlePaymentSuccess = (reference: string) => {
-    //   console.log('Payment successful:', reference);
     //   // Here you would typically update the user's purchased packages
     //   // For now, we'll just show an alert
     //   alert(`Payment successful! Reference: ${reference}`);
@@ -229,7 +219,6 @@ export default function VIP() {
     
   
     // const handlePaymentClose = () => {
-    //   console.log('Payment cancelled');
     // };
   
     // Helper function to get VIP package data by category
@@ -287,14 +276,12 @@ export default function VIP() {
   };
 
   const handlePaymentSuccess = (reference: string) => {
-    console.log('Payment successful:', reference);
     // Here you would typically update the user's purchased packages
     // For now, we'll just show an alert
     alert(`Payment successful! Reference: ${reference}`);
   };
 
   const handlePaymentClose = () => {
-    console.log('Payment cancelled');
   };
 
   const handleDateSelect = (date: string) => {

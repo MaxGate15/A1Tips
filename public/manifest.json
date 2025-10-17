@@ -1,0 +1,20 @@
+{
+  "name": "A1Tips - Premium Sports Betting Tips",
+  "short_name": "A1Tips",
+  "description": "Get the best sports betting tips and predictions with A1Tips. Join our VIP community for exclusive insights and winning strategies.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#10b981",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["sports", "betting", "predictions", "entertainment"],
+  "lang": "en"
+}
+
