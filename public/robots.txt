@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://a1-tips.vercel.app/sitemap.xml
+Sitemap: https://a1-tips.com/sitemap.xml
 
 # Block admin pages from search engines
 Disallow: /admin

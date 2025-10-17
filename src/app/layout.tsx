@@ -31,13 +31,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://a1-tips.vercel.app',
+    url: 'https://a1-tips.com',
     title: 'A1Tips - Premium Sports Betting Tips & Predictions',
     description: 'Get the best sports betting tips and predictions with A1Tips. Join our VIP community for exclusive insights and winning strategies.',
     siteName: 'A1Tips',
     images: [
       {
-        url: 'https://a1-tips.vercel.app/A1%20Tips%20hero.png',
+        url: 'https://a1-tips.com/A1%20Tips%20hero.png',
         width: 1200,
         height: 630,
         alt: 'A1Tips - Premium Sports Betting Tips',
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'A1Tips - Premium Sports Betting Tips',
     description: 'Get the best sports betting tips and predictions with A1Tips. Join our VIP community for exclusive insights and winning strategies.',
-    images: ['https://a1-tips.vercel.app/A1%20Tips%20hero.png'],
+    images: ['https://a1-tips.com/A1%20Tips%20hero.png'],
   },
   icons: {
     icon: '/favicon.ico',
