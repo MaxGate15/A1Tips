@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
 import PaymentDropdown from '../../components/PaymentDropdown';
+import DepositComponent from '../../components/NewPayment';
 
 export default function VIP() {
   const [selectedDate, setSelectedDate] = useState('today');
@@ -497,14 +498,11 @@ export default function VIP() {
                                                     RESULTS UPLOADED
                                                   </div>
                                                 ) : (
-                                                  <PaymentDropdown
-                                                    packageName="VIP 1"
-                                                    price={`GHS ${getVipPackageByCategory('VIP1')!.price}`}
-                                                    priceInGHS={Number(getVipPackageByCategory('VIP1')!.price)}
-                                                    priceInUSD={Math.round(Number(getVipPackageByCategory('VIP1')!.price) * 0.15)}
-                                                    onPaymentSuccess={handlePaymentSuccess}
-                                                    onPaymentClose={handlePaymentClose}
-                                                  />
+                                                    <DepositComponent
+                                                    gameType="VIP1"
+                                                    email= "test@.me"
+                                                    amount={Number(getVipPackageByCategory('VIP1')!.price)}
+                                                    />
                                                 )
                                               ) : (
                                                 <div className="bg-gray-500 text-white py-3 px-4 rounded-lg font-bold text-lg">
@@ -656,14 +654,11 @@ export default function VIP() {
                                                     RESULTS UPLOADED
                                                   </div>
                                                 ) : (
-                                                  <PaymentDropdown
-                                                    packageName="VIP 2"
-                                                    price={`GHS ${getVipPackageByCategory('VIP2')!.price}`}
-                                                    priceInGHS={Number(getVipPackageByCategory('VIP2')!.price)}
-                                                    priceInUSD={Math.round(Number(getVipPackageByCategory('VIP2')!.price) * 0.15)}
-                                                    onPaymentSuccess={handlePaymentSuccess}
-                                                    onPaymentClose={handlePaymentClose}
-                                                  />
+                                                    <DepositComponent
+                                                    gameType="VIP2"
+                                                    email= "test@.me"
+                                                    amount={Number(getVipPackageByCategory('VIP2')!.price)}
+                                                    />
                                                 )
                                               ) : (
                                                 <div className="bg-gray-500 text-white py-3 px-4 rounded-lg font-bold text-lg">
@@ -795,14 +790,11 @@ export default function VIP() {
                                                     RESULTS UPLOADED
                                                   </div>
                                                 ) : (
-                                                  <PaymentDropdown
-                                                    packageName="VIP 3"
-                                                    price={`GHS ${getVipPackageByCategory('VIP3')!.price}`}
-                                                    priceInGHS={Number(getVipPackageByCategory('VIP3')!.price)}
-                                                    priceInUSD={Math.round(Number(getVipPackageByCategory('VIP3')!.price) * 0.15)}
-                                                    onPaymentSuccess={handlePaymentSuccess}
-                                                    onPaymentClose={handlePaymentClose}
-                                                  />
+                                                    <DepositComponent
+                                                    gameType="VIP3"
+                                                    email= "test@.me"
+                                                    amount={Number(getVipPackageByCategory('VIP3')!.price)}
+                                                    />
                                                 )
                                               ) : (
                                                 <div className="bg-gray-500 text-white py-3 px-4 rounded-lg font-bold text-lg">
