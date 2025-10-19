@@ -337,7 +337,7 @@ export default function VIP() {
             </button>
           </div>
           
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <input
               type="date"
               id="dateFilter"
@@ -346,7 +346,7 @@ export default function VIP() {
               placeholder="Select date"
               className="px-4 py-2 border-2 border-green-500 text-green-500 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer"
             />
-          </div>
+          </div> */}
         </div>
 
         {/* Match Prediction Cards */}
