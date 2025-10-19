@@ -1,25 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
 interface DepositComponentProps {
   gameType: string;
-  email: string;
-  amount?: number;
   vipamount?: number;
 }
 
-function DepositComponent({ gameType, email, vipamount}: DepositComponentProps) {
-  const [amount, setAmount] = useState<number>(vipamount || 1);
+function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
+  const email = localStorage.getItem('email') || 'test@example.com';
   const [countryCode, setCountryCode] = useState<string | undefined>();
-  const [userEmail, setUserEmail] = useState<string>(email);
-  const [purchaseGameType, setPurchaseGameType] = useState<string>(gameType);
+  const [userEmail] = useState<string>(email);
+  const [purchaseGameType] = useState<string>(gameType);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [showLocationModal, setShowLocationModal] = useState<boolean>(false);
   const [showAccruePayment, setShowAccruePayment] = useState<boolean>(false);
   const [showCashrampPayment, setShowCashrampPayment] = useState<boolean>(false);
-  const [displayAmount, setDisplayAmount] = useState<number | undefined>(amount);
+  const [displayAmount, setDisplayAmount] = useState<number | undefined>(vipamount);
   const [displayCurrency, setDisplayCurrency] = useState<string>('USD');
+
 
   const handleBuyNow = () => {
     setShowLocationModal(true);
@@ -57,45 +56,49 @@ function DepositComponent({ gameType, email, vipamount}: DepositComponentProps) 
   };
 
   const handleCountryCodeChange = (newCountryCode: string) => {
+    // User chooses country; conversion is handled in useEffect so it updates when vipamount changes too
     setCountryCode(newCountryCode);
-    if (newCountryCode.length === 2) {
-      const currencyInfo = getCurrencyInfo(newCountryCode);
-      setDisplayCurrency(currencyInfo.symbol);
-      
-      // Convert amount from GHS to the selected currency
-      if (amount) {
-        // Use mock value for NG (Nigeria) as requested
-        if (newCountryCode === 'NG') {
-          setDisplayAmount(45.20);
-        } else {
-          const convertedAmount = (amount * currencyInfo.rate).toFixed(2);
-          setDisplayAmount(parseFloat(convertedAmount));
-        }
-      }
-    }
   };
 
+  // Recalculate converted amount and currency symbol whenever country or vipamount changes
+  useEffect(() => {
+    if (!countryCode || countryCode.length !== 2) {
+      // No valid country selected -> reset display amount to undefined and keep USD symbol for default
+      setDisplayAmount(undefined);
+      setDisplayCurrency('USD');
+      return;
+    }
+
+    const currencyInfo = getCurrencyInfo(countryCode);
+    setDisplayCurrency(currencyInfo.symbol);
+
+    // vipamount is in GHS. Convert using rate from map. Keep two decimals.
+    if (typeof vipamount === 'number') {
+      const converted = Number((vipamount * currencyInfo.rate).toFixed(2));
+      setDisplayAmount(converted);
+    } else {
+      setDisplayAmount(undefined);
+    }
+  }, [countryCode, vipamount]);
+
   // NOTE: Customer details should come from your application's user session
-  const customerDetails = {
-    firstName: 'Jane',
-    lastName: 'Doe',
-    email: 'jane.doe@example.com',
-  };
 
   const initiateDeposit = async () => {
     setLoading(true);
     setError(null);
 
     const depositData = {
-      amount: amount,
+      vipamount: vipamount,
       countryCode: countryCode,
       email: userEmail,
       gameType: purchaseGameType,
+      firstName: 'Test',
+      lastName: 'Win'
     };
 
     try {
       // 1. Call the FastAPI endpoint
-      const response = await fetch('http://localhost:8000/api/v1/create-deposit', {
+      const response = await fetch('https://api.a1-tips.com/payments/api/v1/create-deposit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -136,7 +139,7 @@ function DepositComponent({ gameType, email, vipamount}: DepositComponentProps) 
     setError(null);
 
     const accrueData = {
-      amount: amount,
+      vipamount: vipamount,
       email: userEmail,
       gameType: purchaseGameType,
       currency: 'USD', // Default currency for Accrue
@@ -193,7 +196,7 @@ function DepositComponent({ gameType, email, vipamount}: DepositComponentProps) 
         onClick={handleBuyNow}
         className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-bold text-lg transition-colors"
       >
-        Buy Now
+        Buy Now GHS {vipamount} 
       </button>
 
       {/* Location Selection Modal */}
@@ -258,20 +261,22 @@ function DepositComponent({ gameType, email, vipamount}: DepositComponentProps) 
 
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Amount:</span>
-                <span className="font-medium">{countryCode && countryCode.length === 2 ? `${displayCurrency}${displayAmount || amount}` : `₵${amount} GHS`}</span>
+                <span className="font-medium">{countryCode && countryCode.length === 2 ? `${displayCurrency}${displayAmount || vipamount}` : `₵${vipamount} GHS`}</span>
               </div>
 
               {countryCode && countryCode.length === 2 && displayAmount && (
                 <div className="bg-green-50 p-2 rounded text-xs text-green-800">
-                  💱 Converted: {amount} GHS = {displayCurrency}{displayAmount} {getCurrencyInfo(countryCode).code}
+                  💱 Converted: {vipamount} GHS = {displayCurrency}{displayAmount} {getCurrencyInfo(countryCode).code}
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label htmlFor="countrySelect" className="block text-xs font-medium text-gray-700 mb-1">
                   Select Country:
                 </label>
                 <select
+                  id="countrySelect"
+                  aria-label="Select Country"
                   value={countryCode}
                   onChange={(e) => handleCountryCodeChange(e.target.value)}
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -293,10 +298,10 @@ function DepositComponent({ gameType, email, vipamount}: DepositComponentProps) 
 
               <button
                 onClick={initiateDeposit} 
-                disabled={loading || !amount || !countryCode || countryCode.length !== 2}
+                disabled={loading || !vipamount || !countryCode || countryCode.length !== 2}
                 className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors"
               >
-                {loading ? 'Processing...' : countryCode && countryCode.length === 2 ? `Pay ${displayCurrency}${displayAmount || amount}` : 'Enter Country Code'}
+                {loading ? 'Processing...' : countryCode && countryCode.length === 2 ? `Pay ${displayCurrency}${displayAmount || vipamount}` : 'Enter Country Code'}
               </button>
 
               {error && <p className="text-red-500 text-xs">Error: {error}</p>}
@@ -331,7 +336,7 @@ function DepositComponent({ gameType, email, vipamount}: DepositComponentProps) 
 
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Amount:</span>
-                <span className="font-medium">{displayCurrency}{amount}</span>
+                <span className="font-medium">{displayCurrency}{vipamount}</span>
               </div>
 
               <div className="flex justify-between text-sm">
@@ -344,8 +349,8 @@ function DepositComponent({ gameType, email, vipamount}: DepositComponentProps) 
               </div>
 
               <button 
-                onClick={initiateAccruePayment} 
-                disabled={loading || !amount}
+                onClick={initiateDeposit} 
+                disabled={loading || !vipamount}
                 className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors"
               >
                 {loading ? 'Processing...' : 'Pay with Accrue'}

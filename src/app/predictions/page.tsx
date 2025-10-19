@@ -479,6 +479,7 @@ export default function Predictions() {
       popular: false,
     },
   ];
+  
 
   return (
     <div className="min-h-screen bg-gray-50">

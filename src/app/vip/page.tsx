@@ -3,12 +3,25 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
-import PaymentDropdown from '../../components/PaymentDropdown';
 import DepositComponent from '../../components/NewPayment';
+
+// Game type used for VIP packages
+type Game = {
+  id?: number;
+  home_team: string;
+  away_team: string;
+  tournament?: string;
+  sport?: string;
+  odds?: number;
+  prediction?: string;
+  match_status?: string;
+  match_day?: string;
+  booking_id?: number;
+};
 
 export default function VIP() {
   const [selectedDate, setSelectedDate] = useState('today');
-  const [dateFilter, setDateFilter] = useState('');
+  const [dateFilter] = useState('');
   const [vipAvailability, setVipAvailability] = useState({
     'VIP 1': false,
     'VIP 2': false,
@@ -36,22 +49,22 @@ export default function VIP() {
   const [isLoadingVipHistory, setIsLoadingVipHistory] = useState(false);
 
   // Security function: Check if a specific game is pending
-  const isGamePending = (game: any) => {
+  const isGamePending = (game: Game) => {
     return game.match_status === 'Pending' || game.match_status === 'pending' || !game.match_status || game.match_status === '?';
   };
 
   // Security function: Check if a specific game is completed (won/lost)
-  const isGameCompleted = (game: any) => {
+  const isGameCompleted = (game: Game) => {
     return game.match_status === 'Won' || game.match_status === 'Lost' || game.match_status === 'won' || game.match_status === 'lost';
   };
 
   // Security function: Check if ALL games are pending (normal state)
-  const allGamesPending = (games: any[]) => {
+  const allGamesPending = (games: Game[]) => {
     return games.every(game => isGamePending(game));
   };
 
   // Security function: Check if ANY game is completed (individual security)
-  const anyGameCompleted = (games: any[]) => {
+  const anyGameCompleted = (games: Game[]) => {
     return games.some(game => isGameCompleted(game));
   };
   
@@ -272,22 +285,19 @@ export default function VIP() {
     return null;
   }
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDateFilter(e.target.value);
-  };
-
-  const handlePaymentSuccess = (reference: string) => {
-    // Here you would typically update the user's purchased packages
-    // For now, we'll just show an alert
-    alert(`Payment successful! Reference: ${reference}`);
-  };
-
-  const handlePaymentClose = () => {
-  };
+  // dateFilter setter used by date input when enabled
+  // (kept as inline setter elsewhere if needed)
 
   const handleDateSelect = (date: string) => {
     setSelectedDate(date);
   };
+  // cache package lookups to avoid repeated find() calls and guard against undefined
+  const vip1 = getVipPackageByCategory('VIP1');
+  const vip2 = getVipPackageByCategory('VIP2');
+  const vip3 = getVipPackageByCategory('VIP3');
+
+  console.log('VIP3 package:', vip3);
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -341,7 +351,7 @@ export default function VIP() {
           {/* <div className="flex items-center gap-2">
             <input
               type="date"
-              id="dateFilter"
+              id="dateFilter" 
               value={dateFilter}
               onChange={handleDateChange}
               placeholder="Select date"
@@ -355,7 +365,7 @@ export default function VIP() {
                   <div className="bg-white shadow rounded-lg p-6">
                     <div className="text-center mb-8">
                       <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                        Today's Featured Matches
+                        Today’s Featured Matches
                       </h2>
                       <p className="text-gray-600">
                         Premium predictions with high confidence ratings
@@ -377,38 +387,30 @@ export default function VIP() {
                                                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500"></div>
                                                   <span className="ml-2 text-gray-600">Loading matches...</span>
                                                 </div>
-                                              ) : getVipPackageByCategory('VIP1') ? (
-                                                getVipPackageByCategory('VIP1')!.updated ? (
+                                              ) : vip1 ? (
+                                                vip1.updated ? (
                                                   <div className="space-y-4">
-                                                    {getVipPackageByCategory('VIP1')!.games.map((game, index) => (
+                                                    {vip1.games.map((game, index) => (
                                                       <div
                                                         key={index}
-                                                        className={`${
-                                                          index < getVipPackageByCategory('VIP1')!.games.length - 1
-                                                            ? 'border-b border-gray-100 pb-3'
-                                                            : ''
-                                                        }`}
+                                                        className={`${index < vip1.games.length - 1 ? 'border-b border-gray-100 pb-3' : ''}`}
                                                       >
                                                         <h4 className="text-gray-900 font-semibold mb-2">
                                                           {game.home_team} vs {game.away_team}
                                                         </h4>
                                                         {/* Show details based on overall package status */}
-                                                        {allGamesPending(getVipPackageByCategory('VIP1')!.games) ? (
+                                                        {allGamesPending(vip1.games) ? (
                                                           // Normal state: ALL games pending - show only match names
                                                           null
-                                                        ) : anyGameCompleted(getVipPackageByCategory('VIP1')!.games) ? (
+                                                        ) : anyGameCompleted(vip1.games) ? (
                                                           // Individual security: SOME games completed - show details only for completed games
                                                           isGameCompleted(game) ? (
                                                             <>
                                                               <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
-                                                              {/* <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div> */}
                                                               <div className="flex items-center gap-2">
                                                                 <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
                                                                   Option: {game.prediction}
                                                                 </span>
-                                                                {/* <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-                                                                  Odds: {game.odds}
-                                                                </span> */}
                                                                 <span className="ml-auto">
                                                                   {game.match_status?.toLowerCase() === 'won' ? (
                                                                     <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
@@ -447,14 +449,10 @@ export default function VIP() {
                                                           // Default: Show all details
                                                           <>
                                                             <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
-                                                            {/* <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div> */}
                                                             <div className="flex items-center gap-2">
                                                               <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
                                                                 Option: {game.prediction}
                                                               </span>
-                                                              {/* <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-                                                                Odds: {game.odds}
-                                                              </span> */}
                                                               <span className="ml-auto">
                                                                 {game.match_status?.toLowerCase() === 'won' ? (
                                                                   <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
@@ -478,7 +476,7 @@ export default function VIP() {
                                                   </div>
                                                 ) : (
                                                   <ul className="space-y-2">
-                                                    {getVipPackageByCategory('VIP1')!.games.map((game, index) => (
+                                                    {vip1.games.map((game, index) => (
                                                       <li key={index} className="text-gray-900 font-semibold">
                                                         {game.home_team} vs {game.away_team}
                                                       </li>
@@ -492,27 +490,17 @@ export default function VIP() {
                                               )}
                                             </div>
                                             {vipAvailability['VIP 1'] ? (
-                                              getVipPackageByCategory('VIP1') ? (
-                                                anyGameCompleted(getVipPackageByCategory('VIP1')!.games) ? (
-                                                  <div className="bg-blue-500 text-white py-3 px-4 rounded-lg font-bold text-lg">
-                                                    RESULTS UPLOADED
-                                                  </div>
+                                              vip1 ? (
+                                                anyGameCompleted(vip1.games) ? (
+                                                  <div className="bg-blue-500 text-white py-3 px-4 rounded-lg font-bold text-lg">RESULTS UPLOADED</div>
                                                 ) : (
-                                                    <DepositComponent
-                                                    gameType="VIP1"
-                                                    email= "test@.me"
-                                                    amount={Number(getVipPackageByCategory('VIP1')!.price)}
-                                                    />
+                                                    <DepositComponent gameType="VIP1" vipamount={Number(vip1.price ?? 0)} />
                                                 )
                                               ) : (
-                                                <div className="bg-gray-500 text-white py-3 px-4 rounded-lg font-bold text-lg">
-                                                  NOT AVAILABLE
-                                                </div>
+                                                <div className="bg-gray-500 text-white py-3 px-4 rounded-lg font-bold text-lg">NOT AVAILABLE</div>
                                               )
                                             ) : (
-                                              <div className="bg-red-500 text-white py-3 px-4 rounded-lg font-bold text-lg">
-                                                SOLD OUT
-                                              </div>
+                                              <div className="bg-red-500 text-white py-3 px-4 rounded-lg font-bold text-lg">SOLD OUT</div>
                                             )}
                                           </div>
                                         </div>
@@ -533,26 +521,19 @@ export default function VIP() {
                                                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500"></div>
                                                   <span className="ml-2 text-gray-600">Loading matches...</span>
                                                 </div>
-                                              ) : getVipPackageByCategory('VIP2') ? (
-                                                getVipPackageByCategory('VIP2')!.updated ? (
+                                              ) : vip2 ? (
+                                                vip2.updated ? (
                                                   <div className="space-y-4">
-                                                    {getVipPackageByCategory('VIP2')!.games.map((game, index) => (
-                                                      <div
-                                                        key={index}
-                                                        className={`${
-                                                          index < getVipPackageByCategory('VIP2')!.games.length - 1
-                                                            ? 'border-b border-gray-100 pb-3'
-                                                            : ''
-                                                        }`}
-                                                      >
+                                                    {vip2.games.map((game, index) => (
+                                                      <div key={index} className={`${index < vip2.games.length - 1 ? 'border-b border-gray-100 pb-3' : ''}`}>
                                                         <h4 className="text-gray-900 font-semibold mb-2">
                                                           {game.home_team} vs {game.away_team}
                                                         </h4>
                                                         {/* Show details based on overall package status */}
-                                                        {allGamesPending(getVipPackageByCategory('VIP2')!.games) ? (
+                                                        {allGamesPending(vip2.games) ? (
                                                           // Normal state: ALL games pending - show only match names
                                                           null
-                                                        ) : anyGameCompleted(getVipPackageByCategory('VIP2')!.games) ? (
+                                                        ) : anyGameCompleted(vip2.games) ? (
                                                           // Individual security: SOME games completed - show details only for completed games
                                                           isGameCompleted(game) ? (
                                                             <>
@@ -634,17 +615,13 @@ export default function VIP() {
                                                   </div>
                                                 ) : (
                                                   <ul className="space-y-2">
-                                                    {getVipPackageByCategory('VIP2')!.games.map((game, index) => (
-                                                      <li key={index} className="text-gray-900 font-semibold">
-                                                        {game.home_team} vs {game.away_team}
-                                                      </li>
+                                                    {vip2.games.map((game, index) => (
+                                                      <li key={index} className="text-gray-900 font-semibold">{game.home_team} vs {game.away_team}</li>
                                                     ))}
                                                   </ul>
                                                 )
                                               ) : (
-                                                <div className="text-gray-600 text-center py-4">
-                                                  No matches available
-                                                </div>
+                                                <div className="text-gray-600 text-center py-4">No matches available</div>
                                               )}
                                             </div>
                                             {vipAvailability['VIP 2'] ? (
@@ -654,11 +631,7 @@ export default function VIP() {
                                                     RESULTS UPLOADED
                                                   </div>
                                                 ) : (
-                                                    <DepositComponent
-                                                    gameType="VIP2"
-                                                    email= "test@.me"
-                                                    amount={Number(getVipPackageByCategory('VIP2')!.price)}
-                                                    />
+                                                    <DepositComponent gameType="VIP2" vipamount={Number(vip2?.price ?? 0)} />
                                                 )
                                               ) : (
                                                 <div className="bg-gray-500 text-white py-3 px-4 rounded-lg font-bold text-lg">
@@ -687,37 +660,24 @@ export default function VIP() {
                                                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500"></div>
                                                   <span className="ml-2 text-gray-600">Loading matches...</span>
                                                 </div>
-                                              ) : getVipPackageByCategory('VIP3')? (
-                                                getVipPackageByCategory('VIP3')!.updated ? (
-                                                  getVipPackageByCategory('VIP3')!.games.map((game, index) => (
-                                                    <div key={index} className={`${index < getVipPackageByCategory('VIP3')!.games.length - 1 ? 'border-b border-gray-100 pb-3' : ''}`}>
+                                              ) : vip3 ? (
+                                                vip3.updated ? (
+                                                  vip3.games.map((game, index) => (
+                                                    <div key={index} className={`${index < vip3.games.length - 1 ? 'border-b border-gray-100 pb-3' : ''}`}>
                                                       <h4 className="text-gray-900 font-semibold mb-2">{game.home_team} vs {game.away_team}</h4>
-                                                      {/* Show details based on overall package status */}
-                                                      {allGamesPending(getVipPackageByCategory('VIP3')!.games) ? (
-                                                        // Normal state: ALL games pending - show only match names
-                                                        null
-                                                      ) : anyGameCompleted(getVipPackageByCategory('VIP3')!.games) ? (
-                                                        // Individual security: SOME games completed - show details only for completed games
+                                                      {allGamesPending(vip3.games) ? null : anyGameCompleted(vip3.games) ? (
                                                         isGameCompleted(game) ? (
                                                           <>
                                                             <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
-                                                            {/* <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div> */}
                                                             <div className="flex items-center gap-2">
                                                               <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Option: {game.prediction}</span>
-                                                              {/* <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Odds: {game.odds}</span> */}
                                                               <span className="ml-auto">
                                                                 {game.match_status === 'won' || game.match_status === 'Won' || game.match_status === 'WON' ? (
-                                                                  <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
-                                                                    <span className="text-white font-bold text-sm">✓</span>
-                                                                  </div>
+                                                                  <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full"><span className="text-white font-bold text-sm">✓</span></div>
                                                                 ) : game.match_status === 'lost' || game.match_status === 'Lost' || game.match_status === 'LOST' ? (
-                                                                  <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full">
-                                                                    <span className="text-white font-bold text-sm">✗</span>
-                                                                  </div>
+                                                                  <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full"><span className="text-white font-bold text-sm">✗</span></div>
                                                                 ) : (
-                                                                  <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full">
-                                                                    <span className="text-white font-bold text-sm">?</span>
-                                                                  </div>
+                                                                  <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full"><span className="text-white font-bold text-sm">?</span></div>
                                                                 )}
                                                               </span>
                                                             </div>
@@ -725,41 +685,26 @@ export default function VIP() {
                                                         ) : (
                                                           <div className="ml-auto">
                                                             {game.match_status === 'won' || game.match_status === 'Won' || game.match_status === 'WON' ? (
-                                                              <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
-                                                                <span className="text-white font-bold text-sm">✓</span>
-                                                              </div>
+                                                              <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full"><span className="text-white font-bold text-sm">✓</span></div>
                                                             ) : game.match_status === 'lost' || game.match_status === 'Lost' || game.match_status === 'LOST' ? (
-                                                              <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full">
-                                                                <span className="text-white font-bold text-sm">✗</span>
-                                                              </div>
+                                                              <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full"><span className="text-white font-bold text-sm">✗</span></div>
                                                             ) : (
-                                                              <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full">
-                                                                <span className="text-white font-bold text-sm">?</span>
-                                                              </div>
+                                                              <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full"><span className="text-white font-bold text-sm">?</span></div>
                                                             )}
                                                           </div>
                                                         )
                                                       ) : (
-                                                        // Default: Show all details
                                                         <>
                                                           <div className="text-sm text-gray-600 mb-2">Prediction: {game.prediction}</div>
-                                                          {/* <div className="text-sm text-gray-600 mb-2">Odds: {game.odds}</div> */}
                                                           <div className="flex items-center gap-2">
                                                             <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Option: {game.prediction}</span>
-                                                            {/* <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Odds: {game.odds}</span> */}
                                                             <span className="ml-auto">
                                                               {game.match_status === 'won' || game.match_status === 'Won' || game.match_status === 'WON' ? (
-                                                                <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
-                                                                  <span className="text-white font-bold text-sm">✓</span>
-                                                                </div>
+                                                                <div className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full"><span className="text-white font-bold text-sm">✓</span></div>
                                                               ) : game.match_status === 'lost' || game.match_status === 'Lost' || game.match_status === 'LOST' ? (
-                                                                <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full">
-                                                                  <span className="text-white font-bold text-sm">✗</span>
-                                                                </div>
+                                                                <div className="inline-flex items-center justify-center w-6 h-6 bg-red-500 rounded-full"><span className="text-white font-bold text-sm">✗</span></div>
                                                               ) : (
-                                                                <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full">
-                                                                  <span className="text-white font-bold text-sm">?</span>
-                                                                </div>
+                                                                <div className="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full"><span className="text-white font-bold text-sm">?</span></div>
                                                               )}
                                                             </span>
                                                           </div>
@@ -769,17 +714,13 @@ export default function VIP() {
                                                   ))
                                                 ) : (
                                                   <ul className="space-y-2">
-                                                    {getVipPackageByCategory('VIP3')!.games.map((game, index) => (
-                                                      <li key={index} className="text-gray-900 font-semibold">
-                                                        {game.home_team} vs {game.away_team}
-                                                      </li>
+                                                    {vip3.games.map((game, index) => (
+                                                      <li key={index} className="text-gray-900 font-semibold">{game.home_team} vs {game.away_team}</li>
                                                     ))}
                                                   </ul>
                                                 )
                                               ) : (
-                                                <div className="text-gray-600 text-center py-4">
-                                                  No matches available
-                                                </div>
+                                                <div className="text-gray-600 text-center py-4">No matches available</div>
                                               )}
                                             </div>
                                             {/* Show payment button if available and no results yet, otherwise show status */}
@@ -790,11 +731,7 @@ export default function VIP() {
                                                     RESULTS UPLOADED
                                                   </div>
                                                 ) : (
-                                                    <DepositComponent
-                                                    gameType="VIP3"
-                                                    email= "test@.me"
-                                                    amount={Number(getVipPackageByCategory('VIP3')!.price)}
-                                                    />
+                                                    <DepositComponent gameType="VIP3" vipamount={Number(vip3?.price ?? 0)} />
                                                 )
                                               ) : (
                                                 <div className="bg-gray-500 text-white py-3 px-4 rounded-lg font-bold text-lg">
