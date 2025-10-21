@@ -1,13 +1,51 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
 
 interface DepositComponentProps {
   gameType: string;
   vipamount?: number;
 }
 
+interface PaystackResponse {
+  reference: string;
+  message: string;
+  status: string;
+  trans: string;
+  transaction: string;
+  trxref: string;
+}
+
+interface PaystackConfig {
+  key: string;
+  email: string;
+  amount: number;
+  currency: string;
+  channels: string[];
+  metadata: {
+    package: string;
+    customer_name: string;
+    custom_fields: Record<string, unknown>[];
+  };
+  callback: (response: PaystackResponse) => void;
+  onClose: () => void;
+}
+
+declare global {
+  interface Window {
+    PaystackPop: {
+      setup: (config: PaystackConfig) => {
+        openIframe: () => void;
+      };
+    };
+  }
+}
+
 function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
   const email = localStorage.getItem('email') || 'test@example.com';
+  const router = useRouter();
   const [countryCode, setCountryCode] = useState<string | undefined>();
   const [userEmail] = useState<string>(email);
   const [purchaseGameType] = useState<string>(gameType);
@@ -19,18 +57,75 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
   const [displayAmount, setDisplayAmount] = useState<number | undefined>(vipamount);
   const [displayCurrency, setDisplayCurrency] = useState<string>('USD');
 
+  const publicKey = "pk_live_86fde08e9c8e0c05ac59a162c13a370897a0828b";
 
   const handleBuyNow = () => {
     setShowLocationModal(true);
   };
 
+  // Load Paystack script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://js.paystack.co/v1/inline.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   const handleLocationSelect = (location: string) => {
     setShowLocationModal(false);
     if (location === 'ghana') {
-      // Ghana users - no payment options, just close
-      setCountryCode('GH');
-      setShowAccruePayment(false);
-      setShowCashrampPayment(false);
+      // Initialize Paystack payment
+      const handler = window.PaystackPop.setup({
+        key: publicKey,
+        email: userEmail,
+        amount: Math.round(vipamount * 100),
+        currency: 'GHS',
+        channels: ['card', 'mobile_money', 'bank_transfer'],
+        metadata: {
+          package: gameType,
+          customer_name: 'Test User',
+          custom_fields: []
+        },
+        callback: (response: PaystackResponse) => {
+          // Verify payment with backend
+          fetch(`https://coral-app-l62hg.ondigitalocean.app/payment/verify`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              reference: response.reference,
+              email: userEmail,
+              booking_id: gameType // Using packageName as booking identifier
+            })
+          })
+          .then(verifyResponse => {
+            if (verifyResponse.ok) {
+              return verifyResponse.json();
+            } else {
+              throw new Error(`Verification failed: ${verifyResponse.status}`);
+            }
+          })
+          .then(verificationResult => {
+            // redirect to dashboard
+            router.push('/dashboard');
+          })
+          .catch(error => {
+            console.error('Error verifying payment:', error);
+            // Still redirect
+            router.push('/dashboard');
+          });
+        },
+        onClose: () => {
+          setShowLocationModal(false);
+        }
+      });
+      
+      handler.openIframe();
     } else {
       // For non-Ghana users, go directly to Cashramp
       setCountryCode('');
@@ -74,7 +169,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
 
     // vipamount is in GHS. Convert using rate from map. Keep two decimals.
     if (typeof vipamount === 'number') {
-      const converted = Number((vipamount * currencyInfo.rate).toFixed(2));
+      const converted = Number((vipamount * currencyInfo.rate).toFixed(2)) * 0.001;
       setDisplayAmount(converted);
     } else {
       setDisplayAmount(undefined);
@@ -88,7 +183,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
     setError(null);
 
     const depositData = {
-      vipamount: vipamount,
+      vipamount: vipamount ** 0.00001,
       countryCode: countryCode,
       email: userEmail,
       gameType: purchaseGameType,
@@ -349,7 +444,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
               </div>
 
               <button 
-                onClick={initiateDeposit} 
+                onClick={initiateAccruePayment} 
                 disabled={loading || !vipamount}
                 className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors"
               >
