@@ -4,7 +4,7 @@ import { useState, useEffect,useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaCalendarAlt, FaCrown, FaFire, FaTrophy, FaClock, FaCopy } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
-import PaymentDropdown from '../../components/PaymentDropdown';
+import DepositComponent from '../../components/NewPayment';
 import { select } from 'framer-motion/client';
 
 export default function Predictions() {
@@ -796,13 +796,9 @@ export default function Predictions() {
                                             RESULTS UPLOADED
                                           </div>
                                         ) : (
-                                          <PaymentDropdown
-                                            packageName="VIP 1"
-                                            price={`GHS ${getVipPackageByCategory('VIP1')!.price}`}
-                                            priceInGHS={Number(getVipPackageByCategory('VIP1')!.price)}
-                                            priceInUSD={Math.round(Number(getVipPackageByCategory('VIP1')!.price) * 0.15)}
-                                            onPaymentSuccess={handlePaymentSuccess}
-                                            onPaymentClose={handlePaymentClose}
+                                          <DepositComponent
+                                            gameType="VIP1"
+                                            vipamount={Number(getVipPackageByCategory('VIP1')?.price ?? 0)}
                                           />
                                         )
                                       ) : (
@@ -955,13 +951,9 @@ export default function Predictions() {
                                             RESULTS UPLOADED
                                           </div>
                                         ) : (
-                                          <PaymentDropdown
-                                            packageName="VIP 2"
-                                            price={`GHS ${getVipPackageByCategory('VIP2')!.price}`}
-                                            priceInGHS={Number(getVipPackageByCategory('VIP2')!.price)}
-                                            priceInUSD={Math.round(Number(getVipPackageByCategory('VIP2')!.price) * 0.15)}
-                                            onPaymentSuccess={handlePaymentSuccess}
-                                            onPaymentClose={handlePaymentClose}
+                                          <DepositComponent
+                                            gameType="VIP2"
+                                            vipamount={Number(getVipPackageByCategory('VIP2')?.price ?? 0)}
                                           />
                                         )
                                       ) : (
@@ -1094,13 +1086,9 @@ export default function Predictions() {
                                             RESULTS UPLOADED
                                           </div>
                                         ) : (
-                                          <PaymentDropdown
-                                            packageName="VIP 3"
-                                            price={`GHS ${getVipPackageByCategory('VIP3')!.price}`}
-                                            priceInGHS={Number(getVipPackageByCategory('VIP3')!.price)}
-                                            priceInUSD={Math.round(Number(getVipPackageByCategory('VIP3')!.price) * 0.15)}
-                                            onPaymentSuccess={handlePaymentSuccess}
-                                            onPaymentClose={handlePaymentClose}
+                                          <DepositComponent
+                                            gameType="VIP3"
+                                            vipamount={Number(getVipPackageByCategory('VIP3')?.price ?? 0)}
                                           />
                                         )
                                       ) : (
