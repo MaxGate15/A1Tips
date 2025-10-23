@@ -110,7 +110,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
               throw new Error(`Verification failed: ${verifyResponse.status}`);
             }
           })
-          .then(verificationResult => {
+          .then(() => {
             // redirect to dashboard
             router.push('/dashboard');
           })
@@ -136,8 +136,8 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
 
   const getCurrencyInfo = (countryCode: string) => {
     const currencyMap: { [key: string]: { symbol: string; code: string; rate: number } } = {
-      'NG': { symbol: '₦', code: 'NGN', rate: 45.2 }, // 1 GHS = 45.2 NGN
-      'US': { symbol: '$', code: 'USD', rate: 0.065 }, // 1 GHS = 0.065 USD
+      'NG': { symbol: '₦', code: 'NGN', rate: 135.85 }, // 1 GHS = 135.85 NGN
+      'US': { symbol: '$', code: 'USD', rate: 0.093 }, // 1 GHS = 0.093 USD
       'UK': { symbol: '£', code: 'GBP', rate: 0.051 }, // 1 GHS = 0.051 GBP
       'CA': { symbol: 'C$', code: 'CAD', rate: 0.089 }, // 1 GHS = 0.089 CAD
       'GH': { symbol: '₵', code: 'GHS', rate: 1.0 }, // 1 GHS = 1.0 GHS
@@ -169,7 +169,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
 
     // vipamount is in GHS. Convert using rate from map. Keep two decimals.
     if (typeof vipamount === 'number') {
-      const converted = Number((vipamount * currencyInfo.rate).toFixed(2)) * 0.001;
+      const converted = Number((vipamount * currencyInfo.rate).toFixed(2));
       setDisplayAmount(converted);
     } else {
       setDisplayAmount(undefined);
@@ -183,7 +183,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
     setError(null);
 
     const depositData = {
-      vipamount: vipamount ** 0.00001,
+      vipamount: vipamount,
       countryCode: countryCode,
       email: userEmail,
       gameType: purchaseGameType,
@@ -283,7 +283,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
       handleClosePayment();
     }
   };
-
+ 
   return (
     <div className="relative">
       {/* Buy Now Button */}
