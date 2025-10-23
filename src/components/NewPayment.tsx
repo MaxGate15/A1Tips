@@ -283,7 +283,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
       handleClosePayment();
     }
   };
-
+ 
   return (
     <div className="relative">
       {/* Buy Now Button */}
