@@ -318,12 +318,12 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
               >
                 IN GHANA
               </button>
-              <button
+              {/*<button
                 onClick={() => handleLocationSelect('other')}
                 className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-bold text-lg transition-colors"
               >
                 NOT IN GHANA
-              </button>
+              </button> Location Buttons */}
             </div>
           </div>
         </div>
