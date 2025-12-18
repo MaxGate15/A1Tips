@@ -56,6 +56,9 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
   const [showCashrampPayment, setShowCashrampPayment] = useState<boolean>(false);
   const [displayAmount, setDisplayAmount] = useState<number | undefined>(vipamount);
   const [displayCurrency, setDisplayCurrency] = useState<string>('USD');
+  const [phoneNumber, setPhoneNumber] = useState<string>('');
+  const [isPolling, setIsPolling] = useState<boolean>(false);
+  const [pollMessage, setPollMessage] = useState<string>('');
 
   const publicKey = "pk_live_86fde08e9c8e0c05ac59a162c13a370897a0828b";
 
@@ -184,16 +187,18 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
 
     const depositData = {
       vipamount: vipamount,
+      currency: displayCurrency === 'USD' ? 'USD' : getCurrencyInfo(countryCode).code,
+      phoneNumber: phoneNumber,
       countryCode: countryCode,
-      email: userEmail,
       gameType: purchaseGameType,
+      email: userEmail,
       firstName: 'Test',
       lastName: 'Win'
     };
 
     try {
-      // 1. Call the FastAPI endpoint
-      const response = await fetch('https://api.a1-tips.com/payments/api/v1/create-deposit', {
+      // 1. Call the FastAPI endpoint to create deposit
+      const response = await fetch('http://localhost:8000/payments/api/v1/create-deposit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -207,24 +212,45 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
       }
 
       const data = await response.json();
-      const { hostedLink } = data;
+      const { referenceId, status } = data;
 
-      // 2. Redirect the user to the Cashramp Hosted Ramp
-      if (hostedLink) {
-        // Use window.location.replace() to prevent the user from returning 
-        // to this page with the back button after payment.
-        window.location.replace(hostedLink);
+      if (status === 'PENDING') {
+        // 2. Show UI: "Please check your phone and enter PIN..."
+        setIsPolling(true);
+        setPollMessage('Check your phone to approve payment!');
+
+        // 3. Start Polling for status
+        const pollInterval = setInterval(async () => {
+          try {
+            const statusRes = await fetch(
+              `http://localhost:8000/payments/api/v1/check-status/${referenceId}`
+            );
+            const statusData = await statusRes.json();
+
+            if (statusData.status === 'SUCCESSFUL') {
+              clearInterval(pollInterval);
+              setIsPolling(false);
+              setShowCashrampPayment(false);
+              router.push('/dashboard');
+            } else if (statusData.status === 'FAILED') {
+              clearInterval(pollInterval);
+              setIsPolling(false);
+              setError('Payment Failed or Rejected.');
+            }
+          } catch (pollErr) {
+            console.error('Error checking payment status:', pollErr);
+            // Continue polling even if check fails
+          }
+        }, 5000); // Check every 5 seconds
       } else {
-        throw new Error('No hosted link received from the server.');
+        throw new Error('Payment initialization failed. Status: ' + status);
       }
-
     } catch (err) {
       console.error('Deposit initiation failed:', err);
       setError(err.message);
+      setIsPolling(false);
     } finally {
-      // If the redirect is successful, this line is not reached, 
-      // but it's important for error cases.
-      setLoading(false); 
+      setLoading(false);
     }
   };
 
@@ -318,12 +344,12 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
               >
                 IN GHANA
               </button>
-              {/*<button
+              <button
                 onClick={() => handleLocationSelect('other')}
                 className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-bold text-lg transition-colors"
               >
                 NOT IN GHANA
-              </button> Location Buttons */}
+              </button> Location Buttons
             </div>
           </div>
         </div>
@@ -342,6 +368,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
               onClick={handleClosePayment}
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
               aria-label="Close payment form"
+              disabled={isPolling}
             >
               <FaTimes className="w-4 h-4" />
               </button>
@@ -365,39 +392,66 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
                 </div>
               )}
 
-              <div>
-                <label htmlFor="countrySelect" className="block text-xs font-medium text-gray-700 mb-1">
-                  Select Country:
-                </label>
-                <select
-                  id="countrySelect"
-                  aria-label="Select Country"
-                  value={countryCode}
-                  onChange={(e) => handleCountryCodeChange(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  <option value="">Choose your country</option>
-                  <option value="NG">🇳🇬 Nigeria</option>
-                  <option value="US">🇺🇸 United States</option>
-                  <option value="UK">🇬🇧 United Kingdom</option>
-                  <option value="CA">🇨🇦 Canada</option>
-                  <option value="KE">🇰🇪 Kenya</option>
-                  <option value="ZA">🇿🇦 South Africa</option>
-                  <option value="EG">🇪🇬 Egypt</option>
-                  <option value="MA">🇲🇦 Morocco</option>
-                  <option value="TZ">🇹🇿 Tanzania</option>
-                  <option value="GH">🇬🇭 Ghana</option>
-                </select>
-                <p className="text-xs text-gray-500 mt-1">Select your country from the dropdown</p>
-              </div>
+              {!isPolling && (
+                <>
+                  <div>
+                    <label htmlFor="countrySelect" className="block text-xs font-medium text-gray-700 mb-1">
+                      Select Country:
+                    </label>
+                    <select
+                      id="countrySelect"
+                      aria-label="Select Country"
+                      value={countryCode}
+                      onChange={(e) => handleCountryCodeChange(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                      <option value="">Choose your country</option>
+                      <option value="NG">🇳🇬 Nigeria</option>
+                      <option value="US">🇺🇸 United States</option>
+                      <option value="UK">🇬🇧 United Kingdom</option>
+                      <option value="CA">🇨🇦 Canada</option>
+                      <option value="KE">🇰🇪 Kenya</option>
+                      <option value="ZA">🇿🇦 South Africa</option>
+                      <option value="EG">🇪🇬 Egypt</option>
+                      <option value="MA">🇲🇦 Morocco</option>
+                      <option value="TZ">🇹🇿 Tanzania</option>
+                      <option value="GH">🇬🇭 Ghana</option>
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">Select your country from the dropdown</p>
+                  </div>
 
-              <button
-                onClick={initiateDeposit} 
-                disabled={loading || !vipamount || !countryCode || countryCode.length !== 2}
-                className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors"
-              >
-                {loading ? 'Processing...' : countryCode && countryCode.length === 2 ? `Pay ${displayCurrency}${displayAmount || vipamount}` : 'Enter Country Code'}
-              </button>
+                  <div>
+                    <label htmlFor="phoneInput" className="block text-xs font-medium text-gray-700 mb-1">
+                      Phone Number:
+                    </label>
+                    <input
+                      id="phoneInput"
+                      type="tel"
+                      placeholder={countryCode === 'GH' ? '233541234567' : 'Enter phone number'}
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Format: Country code + number (e.g., 233541234567 for Ghana)</p>
+                  </div>
+
+                  <button
+                    onClick={initiateDeposit} 
+                    disabled={loading || !vipamount || !countryCode || countryCode.length !== 2 || !phoneNumber}
+                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors"
+                  >
+                    {loading ? 'Processing...' : countryCode && countryCode.length === 2 ? `Pay ${displayCurrency}${displayAmount || vipamount}` : 'Enter Country Code'}
+                  </button>
+                </>
+              )}
+
+              {isPolling && (
+                <div className="flex flex-col items-center justify-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mb-3"></div>
+                  <p className="text-center text-sm font-medium text-green-600 mb-2">{pollMessage}</p>
+                  <p className="text-center text-xs text-gray-600">Checking payment status...</p>
+                </div>
+              )}
 
               {error && <p className="text-red-500 text-xs">Error: {error}</p>}
             </div>
