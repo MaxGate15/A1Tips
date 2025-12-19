@@ -258,7 +258,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
 
     try {
       // 1. Call the FastAPI endpoint to create deposit
-      const response = await fetch('http://localhost:8000/payments/api/v1/create-deposit', {
+      const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/payments/api/v1/create-deposit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -283,7 +283,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
         const pollInterval = setInterval(async () => {
           try {
             const statusRes = await fetch(
-              `http://localhost:8000/payments/api/v1/check-status/${referenceId}`
+              `https://coral-app-l62hg.ondigitalocean.app/payments/api/v1/check-status/${referenceId}`
             );
             const statusData = await statusRes.json();
 
@@ -328,7 +328,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
 
     try {
       // Call Accrue API endpoint
-      const response = await fetch('http://localhost:8000/api/v1/create-accrue-payment', {
+      const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/api/v1/create-accrue-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
