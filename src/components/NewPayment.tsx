@@ -153,9 +153,27 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
     return currencyMap[countryCode] || { symbol: '$', code: 'USD', rate: 0.065 };
   };
 
+  const getCountryPhoneCode = (countryCode: string): string => {
+    const phoneCodeMap: { [key: string]: string } = {
+      'NG': '+234',
+      'US': '+1',
+      'UK': '+44',
+      'CA': '+1',
+      'GH': '+233',
+      'KE': '+254',
+      'ZA': '+27',
+      'EG': '+20',
+      'MA': '+212',
+      'TZ': '+255',
+    };
+    return phoneCodeMap[countryCode] || '';
+  };
+
   const handleCountryCodeChange = (newCountryCode: string) => {
     // User chooses country; conversion is handled in useEffect so it updates when vipamount changes too
     setCountryCode(newCountryCode);
+    // Reset phone number when country changes
+    setPhoneNumber('');
   };
 
   // Recalculate converted amount and currency symbol whenever country or vipamount changes
@@ -185,10 +203,15 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
     setLoading(true);
     setError(null);
 
+    // Combine country code with phone number
+    const fullPhoneNumber = countryCode && phoneNumber 
+      ? `${getCountryPhoneCode(countryCode)}${phoneNumber}` 
+      : phoneNumber;
+
     const depositData = {
       vipamount: vipamount,
       currency: displayCurrency === 'USD' ? 'USD' : getCurrencyInfo(countryCode).code,
-      phoneNumber: phoneNumber,
+      phoneNumber: fullPhoneNumber,
       countryCode: countryCode,
       gameType: purchaseGameType,
       email: userEmail,
@@ -349,7 +372,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
                 className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-bold text-lg transition-colors"
               >
                 NOT IN GHANA
-              </button> Location Buttons
+              </button>
             </div>
           </div>
         </div>
@@ -373,7 +396,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
               <FaTimes className="w-4 h-4" />
               </button>
 
-            <h3 className="text-green-600 font-bold text-base mb-3">💳 Cashramp Payment</h3>
+            <h3 className="text-green-600 font-bold text-base mb-3">💳</h3>
 
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
@@ -424,15 +447,30 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
                     <label htmlFor="phoneInput" className="block text-xs font-medium text-gray-700 mb-1">
                       Phone Number:
                     </label>
-                    <input
-                      id="phoneInput"
-                      type="tel"
-                      placeholder={countryCode === 'GH' ? '233541234567' : 'Enter phone number'}
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Format: Country code + number (e.g., 233541234567 for Ghana)</p>
+                    <div className="flex">
+                      {countryCode && countryCode.length === 2 && (
+                        <span className="inline-flex items-center px-3 py-2 text-sm border border-r-0 border-gray-300 rounded-l-md bg-gray-50 text-gray-700">
+                          {getCountryPhoneCode(countryCode)}
+                        </span>
+                      )}
+                      <input
+                        id="phoneInput"
+                        type="tel"
+                        placeholder={countryCode && countryCode.length === 2 ? '541234567' : 'Enter phone number'}
+                        value={phoneNumber}
+                        onChange={(e) => {
+                          // Only allow digits
+                          const value = e.target.value.replace(/\D/g, '');
+                          setPhoneNumber(value);
+                        }}
+                        className={`w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${countryCode && countryCode.length === 2 ? 'rounded-l-none' : ''}`}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {countryCode && countryCode.length === 2 
+                        ? `Enter your phone number without the country code (e.g., 541234567)` 
+                        : 'Select a country first to see the phone number format'}
+                    </p>
                   </div>
 
                   <button
