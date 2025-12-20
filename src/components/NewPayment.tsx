@@ -169,6 +169,41 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
     return phoneCodeMap[countryCode] || '';
   };
 
+  const getCountryPhoneCodeWithoutPlus = (countryCode: string): string => {
+    const code = getCountryPhoneCode(countryCode);
+    return code.replace(/^\+/, ''); // Remove leading plus sign
+  };
+
+  const getCountryPhoneNumberLength = (countryCode: string): number => {
+    // Returns the expected phone number length (without country code and without leading 0) for each country
+    // Format: Local format (e.g., 0241234567) -> Remove leading 0 -> 241234567 (9 digits)
+    const phoneLengthMap: { [key: string]: number } = {
+      'NG': 10, // Nigeria: 10 digits (e.g., 08012345678 -> 8012345678)
+      'US': 10, // United States: 10 digits (e.g., 5551234567)
+      'UK': 10, // United Kingdom: 10 digits (e.g., 07123456789 -> 7123456789)
+      'CA': 10, // Canada: 10 digits (e.g., 5551234567)
+      'GH': 9,  // Ghana: 9 digits (e.g., 0241234567 -> 241234567) - MTN/Vodafone/AirtelTigo
+      'KE': 9,  // Kenya: 9 digits (e.g., 0712345678 -> 712345678)
+      'ZA': 9,  // South Africa: 9 digits (e.g., 0821234567 -> 821234567)
+      'EG': 10, // Egypt: 10 digits (e.g., 01234567890 -> 1234567890)
+      'MA': 9,  // Morocco: 9 digits (e.g., 0612345678 -> 612345678)
+      'TZ': 9,  // Tanzania: 9 digits (e.g., 0712345678 -> 712345678)
+    };
+    return phoneLengthMap[countryCode] || 10; // Default to 10 if country not found
+  };
+
+  const isPhoneNumberValid = (phoneNumber: string, countryCode: string | undefined): boolean => {
+    // Trim and clean the phone number
+    const cleanedPhone = phoneNumber.trim().replace(/\D/g, '');
+    
+    if (!countryCode || countryCode.length !== 2) {
+      return cleanedPhone.length > 0; // Basic validation if no country selected
+    }
+    const expectedLength = getCountryPhoneNumberLength(countryCode);
+    const isValid = cleanedPhone.length === expectedLength;
+    return isValid;
+  };
+
   const handleCountryCodeChange = (newCountryCode: string) => {
     // User chooses country; conversion is handled in useEffect so it updates when vipamount changes too
     setCountryCode(newCountryCode);
@@ -203,10 +238,12 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
     setLoading(true);
     setError(null);
 
-    // Combine country code with phone number
-    const fullPhoneNumber = countryCode && phoneNumber 
-      ? `${getCountryPhoneCode(countryCode)}${phoneNumber}` 
-      : phoneNumber;
+    // Combine country code with phone number (without plus sign)
+    // Remove leading zero and any plus signs from phone number if present
+    let cleanedPhoneNumber = phoneNumber.replace(/^0+/, '').replace(/\+/g, ''); // Remove leading zeros and plus signs
+    const fullPhoneNumber = countryCode && cleanedPhoneNumber 
+      ? `${getCountryPhoneCodeWithoutPlus(countryCode)}${cleanedPhoneNumber}` 
+      : cleanedPhoneNumber; // Phone number already cleaned of plus signs
 
     const depositData = {
       vipamount: vipamount,
@@ -460,22 +497,70 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
                         value={phoneNumber}
                         onChange={(e) => {
                           // Only allow digits
-                          const value = e.target.value.replace(/\D/g, '');
+                          let value = e.target.value.replace(/\D/g, '');
+                          // If country code is selected, remove any leading zeros immediately
+                          if (countryCode && countryCode.length === 2) {
+                            value = value.replace(/^0+/, '');
+                            // Limit to maximum length for the selected country
+                            const maxLength = getCountryPhoneNumberLength(countryCode);
+                            if (value.length > maxLength) {
+                              value = value.substring(0, maxLength);
+                            }
+                          }
                           setPhoneNumber(value);
                         }}
-                        className={`w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${countryCode && countryCode.length === 2 ? 'rounded-l-none' : ''}`}
+                        onKeyDown={(e) => {
+                          // Prevent typing 0 when country code is selected and field is empty
+                          if (countryCode && countryCode.length === 2 && phoneNumber === '' && (e.key === '0' || e.key === 'Numpad0')) {
+                            e.preventDefault();
+                            return false;
+                          }
+                          // Prevent typing if already at max length
+                          if (countryCode && countryCode.length === 2) {
+                            const maxLength = getCountryPhoneNumberLength(countryCode);
+                            if (phoneNumber.length >= maxLength && 
+                                !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                              e.preventDefault();
+                              return false;
+                            }
+                          }
+                        }}
+                        onPaste={(e) => {
+                          // Handle paste - remove leading zeros if country code is selected
+                          if (countryCode && countryCode.length === 2) {
+                            e.preventDefault();
+                            const pastedText = e.clipboardData.getData('text');
+                            let value = pastedText.replace(/\D/g, '').replace(/^0+/, '');
+                            const maxLength = getCountryPhoneNumberLength(countryCode);
+                            if (value.length > maxLength) {
+                              value = value.substring(0, maxLength);
+                            }
+                            setPhoneNumber(value);
+                          }
+                        }}
+                        className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 ${countryCode && countryCode.length === 2 ? 'rounded-l-none' : ''} ${
+                          countryCode && countryCode.length === 2 && phoneNumber.length > 0 && !isPhoneNumberValid(phoneNumber, countryCode)
+                            ? 'border-red-300 focus:ring-red-500'
+                            : 'border-gray-300 focus:ring-green-500'
+                        }`}
                       />
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className={`text-xs mt-1 ${
+                      countryCode && countryCode.length === 2 && phoneNumber.length > 0 && !isPhoneNumberValid(phoneNumber, countryCode)
+                        ? 'text-red-500'
+                        : 'text-gray-500'
+                    }`}>
                       {countryCode && countryCode.length === 2 
-                        ? `Enter your phone number without the country code (e.g., 541234567)` 
+                        ? phoneNumber.length > 0 && !isPhoneNumberValid(phoneNumber, countryCode)
+                          ? `Phone number must be exactly ${getCountryPhoneNumberLength(countryCode)} digits (e.g., 541234567)`
+                          : `Enter your phone number without the country code (${getCountryPhoneNumberLength(countryCode)} digits, e.g., 541234567)`
                         : 'Select a country first to see the phone number format'}
                     </p>
                   </div>
 
                   <button
                     onClick={initiateDeposit} 
-                    disabled={loading || !vipamount || !countryCode || countryCode.length !== 2 || !phoneNumber}
+                    disabled={loading || !vipamount || !countryCode || countryCode.length !== 2 || !phoneNumber || !isPhoneNumberValid(phoneNumber, countryCode)}
                     className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors"
                   >
                     {loading ? 'Processing...' : countryCode && countryCode.length === 2 ? `Pay ${displayCurrency}${displayAmount || vipamount}` : 'Enter Country Code'}
