@@ -78,7 +78,7 @@ export default function Navbar() {
                   href="/admin"
                   className="text-black hover:bg-green-500 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
-                  Admin
+                  Load
                 </Link>
               )}
             </div>
@@ -217,7 +217,7 @@ export default function Navbar() {
                 className="bg-red-600 hover:bg-red-700 text-white block px-3 py-2 rounded-md text-base font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Admin
+                Load
               </Link>
             )}
             
