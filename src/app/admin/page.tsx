@@ -333,7 +333,10 @@ export default function Admin() {
     }
   };
 
+  const isLoadDisabled = true;
+
   const loadGames = async () => {
+    if (isLoadDisabled) return;
     const currentBookingCode = bookingCodes[selectedCategory];
     if (!currentBookingCode.trim()) return;
     
@@ -1192,9 +1195,9 @@ export default function Admin() {
                       className="flex-1 px-4 py-2 border-2 border-green-500 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
                     <button 
-                      onClick={loadGames}
-                      disabled={!bookingCodes[selectedCategory]?.trim() && !loadedGames[selectedCategory]?.[0]?.sportyCode}
-                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-md font-medium transition-colors"
+                      onClick={isLoadDisabled ? undefined : loadGames}
+                      disabled={isLoadDisabled || (!bookingCodes[selectedCategory]?.trim() && !loadedGames[selectedCategory]?.[0]?.sportyCode)}
+                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-md font-medium transition-colors disabled:cursor-not-allowed"
                     >
                       Load
                     </button>
